@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Nunito Variable", ui-rounded, "Segoe UI", system-ui, sans-serif;
+
+  --color-cream: #fff7e8;
+  --color-paper: #ffffff;
+  --color-ink: #2b2440;
+  --color-ink-soft: #625b7c;
+  --color-line: #e8dfce;
+
+  --color-primary: #5b4bdb;
+  --color-primary-dark: #4133b0;
+  --color-primary-soft: #ece9ff;
+
+  --color-sun: #ffc93c;
+  --color-sun-dark: #d9a21b;
+  --color-sun-soft: #fff3cc;
+
+  --color-mint: #0b7d62;
+  --color-mint-dark: #075c48;
+  --color-mint-soft: #ddf5ee;
+
+  --color-coral: #d93b45;
+  --color-coral-dark: #a82730;
+  --color-coral-soft: #ffe4e6;
+
+  --animate-shake: shake 0.35s ease-in-out;
+
+  @keyframes shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-6px);
+    }
+    75% {
+      transform: translateX(6px);
+    }
+  }
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* Emoji pictures should use the platform colour emoji font. */
+.emoji {
+  font-family:
+    "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Twemoji Mozilla",
+    sans-serif;
+  line-height: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
