@@ -4,7 +4,7 @@ import { unstable_rethrow } from "next/navigation";
 import type { NextRequest } from "next/server";
 import type { z } from "zod";
 
-import { getAccountId, isAdmin } from "@/server/auth/session";
+import { getAccountId, isAdmin, isParentOf } from "@/server/auth/session";
 
 export class HttpError extends Error {
   constructor(
@@ -66,6 +66,27 @@ export function accountRoute<Context>(
   return publicRoute(async (request, context) => {
     const accountId = await getAccountId();
     if (accountId === null) throw new HttpError(401, "unauthorized");
+    return handler(request, context, accountId);
+  });
+}
+
+/**
+ * For the parent section of the logged-in account: answers 403 until the
+ * parent PIN was entered. `pin_not_set` tells the client to ask for a new PIN.
+ */
+export function parentRoute<Context>(
+  hasParentPin: (accountId: number) => Promise<boolean>,
+  handler: (
+    request: NextRequest,
+    context: Context,
+    accountId: number,
+  ) => Promise<Response>,
+): Handler<Context> {
+  return accountRoute(async (request, context, accountId) => {
+    if (!(await isParentOf(accountId))) {
+      const code = (await hasParentPin(accountId)) ? "parent_locked" : "pin_not_set";
+      throw new HttpError(403, code);
+    }
     return handler(request, context, accountId);
   });
 }

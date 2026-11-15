@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildRoadmap } from "@/features/admin/lib/roadmap";
+import { buildRoadmap } from "@/features/overview/lib/roadmap";
 
 describe("buildRoadmap", () => {
   it("reports not started before the first session", () => {

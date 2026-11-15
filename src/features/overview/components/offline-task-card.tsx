@@ -3,25 +3,24 @@
 import { useState } from "react";
 
 import { Card } from "@/components/ui/card";
-import { useSetOfflineDone } from "@/features/admin/hooks/use-admin";
+import { useSetOfflineDone } from "@/features/overview/hooks/use-overview-mutations";
 import type { AppState } from "@/features/progress/types";
 import { useT } from "@/hooks/use-t";
 import { getOfflineTask } from "@/lib/offline-task";
 
 const CHECKBOX_ID = "offline-done";
 
-/** The admin confirms here that today's away-from-screen task was done. */
+/** A grown-up confirms here that today's away-from-screen task was done. */
 export function OfflineTaskCard({ state }: { state: AppState }) {
-  const accountId = state.account.id;
   const t = useT();
-  const setOffline = useSetOfflineDone(accountId);
+  const setOffline = useSetOfflineDone();
   // Local copy so the checkbox responds at once; a failed save puts it back.
   const [done, setDone] = useState(state.todayStats.offlineDone);
 
   return (
     <Card role="region" aria-labelledby="offline-title" className="flex flex-col gap-3">
       <h2 id="offline-title" className="text-xl font-black">
-        {t.admin.offlineTitle}
+        {t.overview.offlineTitle}
       </h2>
       <p className="font-bold">{getOfflineTask(t.offlineTasks, state.today)}</p>
       <label
@@ -40,7 +39,7 @@ export function OfflineTaskCard({ state }: { state: AppState }) {
             setOffline.mutate(next, { onError: () => setDone(!next) });
           }}
         />
-        {t.admin.offlineToggle}
+        {t.overview.offlineToggle}
       </label>
       {setOffline.isError && (
         <p role="alert" className="text-coral text-sm font-bold">

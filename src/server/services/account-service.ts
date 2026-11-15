@@ -1,9 +1,10 @@
 import "server-only";
 
-import { count, countDistinct, desc, eq, max } from "drizzle-orm";
+import { and, count, countDistinct, desc, eq, isNull, max } from "drizzle-orm";
 
 import { cleanName, nameKey } from "@/features/auth/lib/name";
 import type { AccountDetails, AccountsList, AccountUpdate } from "@/features/admin/types";
+import { hashPin, isSameHash } from "@/server/auth/session";
 import { getDb } from "@/server/db/client";
 import { accounts, sessions } from "@/server/db/schema";
 import { HttpError } from "@/server/http";
@@ -16,6 +17,7 @@ function toDetails(row: AccountRow): AccountDetails {
     name: row.name,
     isVip: row.isVip,
     note: row.note,
+    hasParentPin: row.parentPinHash !== null,
     createdAt: row.createdAt.toISOString(),
   };
 }
@@ -85,11 +87,36 @@ export async function updateAccount(
   update: AccountUpdate,
 ): Promise<AccountDetails> {
   const db = await getDb();
+  const { resetParentPin, ...fields } = update;
   const [row] = await db
     .update(accounts)
-    .set(update)
+    .set({ ...fields, ...(resetParentPin ? { parentPinHash: null } : {}) })
     .where(eq(accounts.id, accountId))
     .returning();
   if (!row) throw new HttpError(404, "account_not_found");
   return toDetails(row);
+}
+
+export async function hasParentPin(accountId: number): Promise<boolean> {
+  return (await getAccountDetails(accountId)).hasParentPin;
+}
+
+/** Sets the parent PIN for the first time. An existing PIN is never replaced here. */
+export async function createParentPin(accountId: number, pin: string): Promise<void> {
+  const db = await getDb();
+  const updated = await db
+    .update(accounts)
+    .set({ parentPinHash: hashPin(accountId, pin) })
+    .where(and(eq(accounts.id, accountId), isNull(accounts.parentPinHash)))
+    .returning({ id: accounts.id });
+  if (updated.length === 0) throw new HttpError(409, "pin_exists");
+}
+
+export async function isParentPin(accountId: number, pin: string): Promise<boolean> {
+  const db = await getDb();
+  const [row] = await db
+    .select({ hash: accounts.parentPinHash })
+    .from(accounts)
+    .where(eq(accounts.id, accountId));
+  return Boolean(row?.hash) && isSameHash(row?.hash ?? "", hashPin(accountId, pin));
 }

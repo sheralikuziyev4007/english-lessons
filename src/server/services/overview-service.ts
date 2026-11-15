@@ -2,28 +2,25 @@ import "server-only";
 
 import { and, count, desc, eq, gte, min, sql, sum } from "drizzle-orm";
 
-import { buildRoadmap } from "@/features/admin/lib/roadmap";
-import type { AccountOverview, ActivityDay, HardWord } from "@/features/admin/types";
+import { buildRoadmap } from "@/features/overview/lib/roadmap";
+import type { ActivityDay, HardWord, Overview } from "@/features/overview/types";
 import { ACTIVITY_DAYS, HARD_WORD_LIMIT, HARD_WORD_MIN_WRONG } from "@/lib/constants";
 import { dayKey, lastDays } from "@/lib/dates";
 import { getDb } from "@/server/db/client";
 import { days, sessions, wordProgress } from "@/server/db/schema";
-import { getAccountDetails } from "@/server/services/account-service";
 import { listPrizes } from "@/server/services/prize-service";
 import { getState } from "@/server/services/progress-service";
 
 const SECONDS_PER_MINUTE = 60;
 
-/** Everything the admin sees after selecting an account. */
-export async function getAccountOverview(
+/** One learner's results, for the parent section and the admin section. */
+export async function getOverview(
   accountId: number,
   today: string = dayKey(),
-): Promise<AccountOverview> {
+): Promise<Overview> {
   const db = await getDb();
   const window = lastDays(today, ACTIVITY_DAYS);
   const mine = eq(sessions.accountId, accountId);
-  // Throws 404 for an unknown id before any other query runs.
-  const account = await getAccountDetails(accountId);
 
   const [state, prizeList, activityRows, hardRows, startRows] = await Promise.all([
     getState(accountId, today),
@@ -71,7 +68,6 @@ export async function getAccountOverview(
   }));
 
   return {
-    account,
     state,
     prizes: prizeList,
     activity,

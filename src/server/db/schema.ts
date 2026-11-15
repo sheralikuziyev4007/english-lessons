@@ -17,6 +17,8 @@ export const accounts = pgTable("accounts", {
   isVip: boolean("is_vip").notNull().default(false),
   /** Private admin comment about this account. */
   note: text("note").notNull().default(""),
+  /** Keyed hash of the parent PIN; null until the parent sets one. */
+  parentPinHash: text("parent_pin_hash"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -86,6 +88,8 @@ export const SCHEMA_STATEMENTS: readonly string[] = [
     note text NOT NULL DEFAULT '',
     created_at timestamptz NOT NULL DEFAULT now()
   )`,
+  // Added after the first release of the accounts table.
+  `ALTER TABLE accounts ADD COLUMN IF NOT EXISTS parent_pin_hash text`,
   `CREATE TABLE IF NOT EXISTS study_sessions (
     id serial PRIMARY KEY,
     account_id integer NOT NULL,

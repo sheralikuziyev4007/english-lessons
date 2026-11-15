@@ -3,20 +3,16 @@
 import { ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AccountSettings } from "@/features/admin/components/account-settings";
-import { ActivityChart } from "@/features/admin/components/activity-chart";
-import { HardWords } from "@/features/admin/components/hard-words";
-import { OfflineTaskCard } from "@/features/admin/components/offline-task-card";
-import { PrizeForm } from "@/features/admin/components/prize-form";
-import { PrizeList } from "@/features/admin/components/prize-list";
-import { RoadmapCard } from "@/features/admin/components/roadmap-card";
-import { SummaryCards } from "@/features/admin/components/summary-cards";
-import { TestsTable } from "@/features/admin/components/tests-table";
 import { VipBadge } from "@/features/admin/components/vip-badge";
-import { useAccountOverview } from "@/features/admin/hooks/use-admin";
+import {
+  useAccountOverview,
+  useAdminOverviewActions,
+} from "@/features/admin/hooks/use-admin";
+import { OverviewActionsProvider } from "@/features/overview/actions-context";
+import { OverviewSections } from "@/features/overview/components/overview-sections";
 import { useT } from "@/hooks/use-t";
 import { dayKey, formatDayKey } from "@/lib/dates";
 
@@ -29,6 +25,7 @@ interface AccountDetailProps {
 export function AccountDetail({ accountId, onBack }: AccountDetailProps) {
   const t = useT();
   const { data, isError, refetch } = useAccountOverview(accountId);
+  const actions = useAdminOverviewActions(accountId);
 
   const backButton = (
     <Button variant="ghost" size="sm" className="self-start lg:hidden" onClick={onBack}>
@@ -78,21 +75,9 @@ export function AccountDetail({ accountId, onBack }: AccountDetailProps) {
       </div>
 
       <AccountSettings account={account} />
-      <SummaryCards overview={data} />
-
-      <Card role="region" aria-labelledby="prizes-title" className="flex flex-col gap-4">
-        <h2 id="prizes-title" className="text-xl font-black">
-          {t.admin.prizesTitle}
-        </h2>
-        <PrizeForm accountId={account.id} />
-        <PrizeList prizes={data.prizes} />
-      </Card>
-
-      <OfflineTaskCard state={data.state} />
-      <ActivityChart activity={data.activity} />
-      <RoadmapCard roadmap={data.roadmap} />
-      <HardWords words={data.hardWords} />
-      <TestsTable state={data.state} />
+      <OverviewActionsProvider actions={actions}>
+        <OverviewSections overview={data} />
+      </OverviewActionsProvider>
     </section>
   );
 }

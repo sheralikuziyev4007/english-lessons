@@ -1,4 +1,4 @@
-import { prizeActionSchema } from "@/features/admin/schemas";
+import { prizeActionSchema } from "@/features/overview/schemas";
 import { adminRoute, json, parseBody, parseId } from "@/server/http";
 import { updatePrize } from "@/server/services/prize-service";
 

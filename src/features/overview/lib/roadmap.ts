@@ -1,5 +1,5 @@
 import { ALL_LESSONS } from "@/features/content";
-import type { Roadmap, RoadmapStatus } from "@/features/admin/types";
+import type { Roadmap, RoadmapStatus } from "@/features/overview/types";
 import { ROADMAP_TOLERANCE_LESSONS, TARGET_LESSONS_PER_WEEK } from "@/lib/constants";
 import { diffDays } from "@/lib/dates";
 

@@ -15,8 +15,8 @@ import {
   updateAccount,
   updatePrize,
 } from "@/features/admin/api";
-import type { PrizeValues } from "@/features/admin/schemas";
 import type { AccountUpdate } from "@/features/admin/types";
+import type { OverviewActions } from "@/features/overview/actions-context";
 import { QUERY_KEYS } from "@/lib/constants";
 
 /**
@@ -26,6 +26,7 @@ import { QUERY_KEYS } from "@/lib/constants";
 function refreshAll(queryClient: QueryClient): Promise<unknown> {
   return Promise.all([
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminAccounts }),
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.parentOverview }),
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.state }),
   ]);
 }
@@ -65,26 +66,13 @@ export function useUpdateAccount(accountId: number) {
   });
 }
 
-export function useCreatePrize(accountId: number) {
+/** API calls the shared results screen uses when the admin edits an account. */
+export function useAdminOverviewActions(accountId: number): OverviewActions {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (values: PrizeValues) => createPrize(accountId, values),
-    onSuccess: () => refreshAll(queryClient),
-  });
-}
-
-export function useUpdatePrize() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: updatePrize,
-    onSuccess: () => refreshAll(queryClient),
-  });
-}
-
-export function useSetOfflineDone(accountId: number) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (done: boolean) => setOfflineDone(accountId, done),
-    onSuccess: () => refreshAll(queryClient),
-  });
+  return {
+    createPrize: (values) => createPrize(accountId, values),
+    updatePrize,
+    setOfflineDone: (done) => setOfflineDone(accountId, done),
+    refresh: () => refreshAll(queryClient),
+  };
 }

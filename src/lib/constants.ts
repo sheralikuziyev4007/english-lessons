@@ -9,6 +9,7 @@ export const ROUTES = {
   home: "/",
   login: "/login",
   review: "/review",
+  parent: "/parent",
   admin: "/admin",
   lesson: (lessonId: string) => `/lesson/${lessonId}`,
   test: (unitId: string) => `/test/${unitId}`,
@@ -16,6 +17,7 @@ export const ROUTES = {
 
 export const QUERY_KEYS = {
   state: ["state"],
+  parentOverview: ["parent-overview"],
   adminAccounts: ["admin", "accounts"],
   adminAccount: (accountId: number) => ["admin", "accounts", accountId] as const,
 } as const;
@@ -57,9 +59,12 @@ export const TARGET_LESSONS_PER_WEEK = 5;
 export const ROADMAP_TOLERANCE_LESSONS = 2;
 
 export const SESSION_COOKIE = "account_session";
+export const PARENT_COOKIE = "parent_session";
 export const ADMIN_COOKIE = "admin_session";
 export const SESSION_MAX_AGE_SEC = 60 * 60 * 24 * 180;
+export const PARENT_MAX_AGE_SEC = 60 * 30;
 export const ADMIN_MAX_AGE_SEC = 60 * 60 * 12;
+export const PIN_LENGTH = 4;
 
 export const NAME_MIN_LENGTH = 2;
 export const NAME_MAX_LENGTH = 30;

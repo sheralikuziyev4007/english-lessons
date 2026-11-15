@@ -1,4 +1,4 @@
-import { prizeSchema } from "@/features/admin/schemas";
+import { prizeSchema } from "@/features/overview/schemas";
 import { adminRoute, json, parseBody, parseId } from "@/server/http";
 import { getAccountDetails } from "@/server/services/account-service";
 import { createPrize } from "@/server/services/prize-service";

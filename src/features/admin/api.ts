@@ -1,14 +1,11 @@
-import type {
-  AdminLoginValues,
-  PrizeAction,
-  PrizeValues,
-} from "@/features/admin/schemas";
+import type { AdminLoginValues } from "@/features/admin/schemas";
 import type {
   AccountDetails,
   AccountOverview,
   AccountsList,
   AccountUpdate,
 } from "@/features/admin/types";
+import type { PrizeAction, PrizeValues } from "@/features/overview/schemas";
 import type { Prize } from "@/features/progress/types";
 import { api } from "@/lib/api-client";
 

@@ -1,4 +1,4 @@
-import type { AppState, Prize } from "@/features/progress/types";
+import type { Overview } from "@/features/overview/types";
 
 export interface AccountDetails {
   id: number;
@@ -7,6 +7,8 @@ export interface AccountDetails {
   isVip: boolean;
   /** Private admin comment; never shown to the learner. */
   note: string;
+  /** Whether the parent section of this account already has a PIN. */
+  hasParentPin: boolean;
   createdAt: string;
 }
 
@@ -24,36 +26,11 @@ export interface AccountsList {
 export interface AccountUpdate {
   isVip?: boolean;
   note?: string;
-}
-
-export interface ActivityDay {
-  day: string;
-  minutes: number;
-  sessions: number;
-}
-
-export interface HardWord {
-  wordId: string;
-  wrong: number;
-  correct: number;
-}
-
-export type RoadmapStatus = "not_started" | "ahead" | "on_track" | "behind";
-
-export interface Roadmap {
-  startDay: string | null;
-  completedLessons: number;
-  totalLessons: number;
-  expectedLessons: number;
-  status: RoadmapStatus;
+  /** Removes the parent PIN so the parent can choose a new one. */
+  resetParentPin?: true;
 }
 
 /** Returned by GET /api/admin/accounts/:id. */
-export interface AccountOverview {
+export interface AccountOverview extends Overview {
   account: AccountDetails;
-  state: AppState;
-  prizes: Prize[];
-  activity: ActivityDay[];
-  hardWords: HardWord[];
-  roadmap: Roadmap;
 }

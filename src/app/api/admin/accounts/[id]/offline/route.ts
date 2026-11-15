@@ -1,4 +1,4 @@
-import { offlineSchema } from "@/features/admin/schemas";
+import { offlineSchema } from "@/features/overview/schemas";
 import { adminRoute, json, parseBody, parseId } from "@/server/http";
 import { getAccountDetails } from "@/server/services/account-service";
 import { setOfflineDone } from "@/server/services/overview-service";

@@ -27,6 +27,7 @@ export function AccountSettings({ account }: { account: AccountDetails }) {
   // Local copy so the switch responds at once; a failed save puts it back.
   const [isVip, setIsVip] = useState(account.isVip);
   const note = useUpdateAccount(account.id);
+  const pin = useUpdateAccount(account.id);
   const {
     register,
     handleSubmit,
@@ -110,6 +111,31 @@ export function AccountSettings({ account }: { account: AccountDetails }) {
           )}
         </div>
       </form>
+
+      <div className="border-line flex flex-col gap-2 border-t-2 pt-4">
+        <p data-testid="pin-status" className="font-extrabold">
+          {account.hasParentPin ? t.admin.pinSet : t.admin.pinNotSet}
+        </p>
+        {account.hasParentPin && (
+          <>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="self-start"
+              disabled={pin.isPending}
+              onClick={() => pin.mutate({ resetParentPin: true })}
+            >
+              {t.admin.pinReset}
+            </Button>
+            <p className="text-ink-soft text-sm font-bold">{t.admin.pinResetHint}</p>
+          </>
+        )}
+        {pin.isError && (
+          <p role="alert" className="text-coral text-sm font-bold">
+            {t.errors.generic}
+          </p>
+        )}
+      </div>
     </Card>
   );
 }

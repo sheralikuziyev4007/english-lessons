@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { getUnit } from "@/features/content";
-import { useUpdatePrize } from "@/features/admin/hooks/use-admin";
+import { useUpdatePrize } from "@/features/overview/hooks/use-overview-mutations";
 import type { Prize, PrizeStatus } from "@/features/progress/types";
 import { useLocalized } from "@/hooks/use-localized";
 import { useT } from "@/hooks/use-t";
@@ -22,7 +22,7 @@ export function PrizeList({ prizes }: { prizes: Prize[] }) {
 
   if (prizes.length === 0) {
     return (
-      <p className="text-ink-soft py-4 text-center font-bold">{t.admin.prizesEmpty}</p>
+      <p className="text-ink-soft py-4 text-center font-bold">{t.overview.prizesEmpty}</p>
     );
   }
 
@@ -43,7 +43,7 @@ export function PrizeList({ prizes }: { prizes: Prize[] }) {
               </p>
               <p className="text-ink-soft text-sm font-bold">
                 {unit ? localized(unit.title) : prize.unitId} ·{" "}
-                {t.admin.prizeNeeds(prize.minScore)}
+                {t.overview.prizeNeeds(prize.minScore)}
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -53,7 +53,7 @@ export function PrizeList({ prizes }: { prizes: Prize[] }) {
                   STATUS_STYLES[prize.status],
                 )}
               >
-                {t.admin.prizeStatus[prize.status]}
+                {t.overview.prizeStatus[prize.status]}
               </span>
               {prize.status === "earned" && (
                 <Button
@@ -62,7 +62,7 @@ export function PrizeList({ prizes }: { prizes: Prize[] }) {
                   disabled={updatePrize.isPending}
                   onClick={() => updatePrize.mutate({ id: prize.id, action: "given" })}
                 >
-                  {t.admin.prizeGive}
+                  {t.overview.prizeGive}
                 </Button>
               )}
               {prize.status === "active" && (
@@ -72,7 +72,7 @@ export function PrizeList({ prizes }: { prizes: Prize[] }) {
                   disabled={updatePrize.isPending}
                   onClick={() => updatePrize.mutate({ id: prize.id, action: "cancel" })}
                 >
-                  {t.admin.prizeCancel}
+                  {t.overview.prizeCancel}
                 </Button>
               )}
             </div>
