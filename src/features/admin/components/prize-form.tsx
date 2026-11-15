@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Field, fieldErrorId } from "@/components/ui/field";
 import { Input, inputClassName } from "@/components/ui/input";
 import { UNITS } from "@/features/content";
-import { useCreatePrize } from "@/features/parent/hooks/use-parent";
-import { prizeSchema, type PrizeValues } from "@/features/parent/schemas";
+import { useCreatePrize } from "@/features/admin/hooks/use-admin";
+import { prizeSchema, type PrizeValues } from "@/features/admin/schemas";
 import { useErrorText } from "@/hooks/use-error-text";
 import { useLocalized } from "@/hooks/use-localized";
 import { useT } from "@/hooks/use-t";
@@ -27,11 +27,11 @@ const DEFAULT_VALUES: PrizeValues = {
   minScore: DEFAULT_PRIZE_SCORE,
 };
 
-export function PrizeForm() {
+export function PrizeForm({ accountId }: { accountId: number }) {
   const t = useT();
   const localized = useLocalized();
   const errorText = useErrorText();
-  const createPrize = useCreatePrize();
+  const createPrize = useCreatePrize(accountId);
   const {
     register,
     handleSubmit,
@@ -66,10 +66,10 @@ export function PrizeForm() {
       className="flex flex-col gap-4"
     >
       <h3 id="prize-form-title" className="text-lg font-black">
-        {t.parent.prizeFormTitle}
+        {t.admin.prizeFormTitle}
       </h3>
       <div className="grid gap-4 md:grid-cols-2">
-        <Field label={t.parent.prizeUnit} htmlFor={IDS.unit} error={fieldErrors.unit}>
+        <Field label={t.admin.prizeUnit} htmlFor={IDS.unit} error={fieldErrors.unit}>
           <select
             id={IDS.unit}
             aria-invalid={fieldErrors.unit !== undefined}
@@ -77,7 +77,7 @@ export function PrizeForm() {
             className={inputClassName}
             {...register("unitId")}
           >
-            <option value="">{t.parent.prizeUnitPlaceholder}</option>
+            <option value="">{t.admin.prizeUnitPlaceholder}</option>
             {UNITS.map((unit, index) => (
               <option key={unit.id} value={unit.id}>
                 {index + 1}. {localized(unit.title)}
@@ -85,7 +85,7 @@ export function PrizeForm() {
             ))}
           </select>
         </Field>
-        <Field label={t.parent.prizeScore} htmlFor={IDS.score} error={fieldErrors.score}>
+        <Field label={t.admin.prizeScore} htmlFor={IDS.score} error={fieldErrors.score}>
           <Input
             id={IDS.score}
             type="number"
@@ -98,11 +98,11 @@ export function PrizeForm() {
           />
         </Field>
       </div>
-      <Field label={t.parent.prizeText} htmlFor={IDS.title} error={fieldErrors.title}>
+      <Field label={t.admin.prizeText} htmlFor={IDS.title} error={fieldErrors.title}>
         <Input
           id={IDS.title}
           maxLength={PRIZE_TITLE_MAX_LENGTH}
-          placeholder={t.parent.prizeTextPlaceholder}
+          placeholder={t.admin.prizeTextPlaceholder}
           aria-invalid={fieldErrors.title !== undefined}
           aria-describedby={describedBy(IDS.title, fieldErrors.title)}
           {...register("title")}
@@ -114,7 +114,7 @@ export function PrizeForm() {
         </p>
       )}
       <Button type="submit" disabled={createPrize.isPending} className="self-start">
-        {createPrize.isPending ? t.common.loading : t.parent.prizeAdd}
+        {createPrize.isPending ? t.common.loading : t.admin.prizeAdd}
       </Button>
     </form>
   );

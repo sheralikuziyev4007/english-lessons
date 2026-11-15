@@ -16,20 +16,20 @@ export function TestsTable({ state }: { state: AppState }) {
   return (
     <Card role="region" aria-labelledby="tests-title" className="flex flex-col gap-3">
       <h2 id="tests-title" className="text-xl font-black">
-        {t.parent.testsTitle}
+        {t.admin.testsTitle}
       </h2>
       <div className="overflow-x-auto">
         <table className="w-full min-w-80 text-left">
           <thead>
             <tr className="text-ink-soft border-line border-b-2 text-sm">
               <th scope="col" className="py-2 pr-3 font-extrabold">
-                {t.parent.testsUnit}
+                {t.admin.testsUnit}
               </th>
               <th scope="col" className="py-2 pr-3 font-extrabold">
-                {t.parent.testsLessons}
+                {t.admin.testsLessons}
               </th>
               <th scope="col" className="py-2 font-extrabold">
-                {t.parent.testsScore}
+                {t.admin.testsScore}
               </th>
             </tr>
           </thead>
@@ -59,10 +59,10 @@ export function TestsTable({ state }: { state: AppState }) {
                         className={cn("font-black", passed ? "text-mint" : "text-coral")}
                       >
                         {test.bestScore}% ·{" "}
-                        {passed ? t.parent.testsPassed : t.parent.testsFailed}
+                        {passed ? t.admin.testsPassed : t.admin.testsFailed}
                       </span>
                     ) : (
-                      <span className="text-ink-soft">{t.parent.testsNotTaken}</span>
+                      <span className="text-ink-soft">{t.admin.testsNotTaken}</span>
                     )}
                   </td>
                 </tr>

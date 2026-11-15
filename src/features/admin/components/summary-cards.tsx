@@ -1,18 +1,18 @@
 "use client";
 
-import type { ParentOverview } from "@/features/parent/types";
+import type { AccountOverview } from "@/features/admin/types";
 import { useT } from "@/hooks/use-t";
 
-export function SummaryCards({ overview }: { overview: ParentOverview }) {
+export function SummaryCards({ overview }: { overview: AccountOverview }) {
   const t = useT();
   const { state, roadmap } = overview;
   const items = [
-    { id: "streak", label: t.parent.streak, value: String(state.streak) },
-    { id: "stars", label: t.parent.stars, value: String(state.totalStars) },
-    { id: "words", label: t.parent.learnedWords, value: String(state.learnedWords) },
+    { id: "streak", label: t.admin.streak, value: String(state.streak) },
+    { id: "stars", label: t.admin.stars, value: String(state.totalStars) },
+    { id: "words", label: t.admin.learnedWords, value: String(state.learnedWords) },
     {
       id: "lessons",
-      label: t.parent.lessonsDone,
+      label: t.admin.lessonsDone,
       value: `${roadmap.completedLessons} / ${roadmap.totalLessons}`,
     },
   ];
@@ -20,7 +20,7 @@ export function SummaryCards({ overview }: { overview: ParentOverview }) {
   return (
     <section aria-labelledby="summary-title">
       <h2 id="summary-title" className="sr-only">
-        {t.parent.summaryTitle}
+        {t.admin.summaryTitle}
       </h2>
       <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {items.map((item) => (
