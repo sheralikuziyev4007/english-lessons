@@ -1,12 +1,12 @@
 # Starway English
 
-A daily English course for a young learner (age 7–9, starting from zero) with a parent panel, prizes and spaced repetition. Vocabulary follows the Cambridge **Pre A1 Starters** wordlist.
+A daily English course for young learners (age 7–9, starting from zero) with name-only accounts, an admin section, prizes and spaced repetition. Vocabulary follows the Cambridge **Pre A1 Starters** wordlist.
 
 **Live demo:** _add your Vercel URL here_
 
 _Screenshot or GIF: add one here._
 
-> This is a private family project: one family account, one learner. Search engines are told not to index it.
+> Learners sign in with a name only, so anyone who has the link can open an account. The admin section is protected by a password. Search engines are told not to index the site.
 
 ## Features
 
@@ -19,18 +19,24 @@ _Screenshot or GIF: add one here._
 - Unit tests in the entrance-exam format (three options per question); 70% opens the next unit
 - Spaced repetition (Leitner boxes): words return for review after 1, 2, 4, 8 and 16 days
 - Daily plan: one lesson, word review and one task away from the screen
-- Daily cap of two new lessons, so the course is not rushed
+- Daily cap of two new lessons, so the course is not rushed (no cap on the VIP plan)
 - Stars, day streak and a prize banner that shows the steps left
 - Interface in Uzbek or English (toggle in the header)
 
-**For the parent** (protected by a 4-digit PIN)
+**Accounts**
 
-- Set a prize for a unit and the test score needed to earn it; mark it as given later
-- Summary: streak, stars, words learned, lessons finished
-- Minutes of practice for the last 7 days
-- Best test score per unit and the words the child gets wrong most often
-- Tick off the daily offline task
-- Roadmap towards the exam (Starters → Movers → Flyers) with an on-track indicator
+- Sign-in with a name only; a new name creates an account, the same name opens it again on any device
+- Names are matched without regard to letter case, extra spaces or apostrophe style
+- The learner is addressed by name on the home screen, in feedback and on result screens
+
+**Admin section** (`/admin`, password protected, not linked from the app)
+
+- List of all accounts with their number, registration date, lessons finished and last activity
+- Private comment per account, visible only to the admin
+- VIP plan per account: removes the daily limit on new lessons (also enforced on the server)
+- Results per account: streak, stars, words learned, minutes for the last 7 days, best test score per unit, most difficult words
+- Prizes per account: set a prize for a unit and the test score needed, mark it as given later
+- Tick off the daily offline task; roadmap towards the exam with an on-track indicator
 
 ## Tech stack
 
@@ -38,7 +44,7 @@ _Screenshot or GIF: add one here._
 - **UI:** Tailwind CSS v4, shadcn-style components (CVA + tailwind-merge), Framer Motion, lucide-react
 - **Data:** TanStack Query, Zustand (interface language), React Hook Form + Zod
 - **Backend:** Next.js Route Handlers, Drizzle ORM, PostgreSQL (Neon in production, embedded PGlite locally)
-- **Auth:** signed HTTP-only cookies (jose)
+- **Auth:** signed HTTP-only cookies (jose); name-only learner accounts, password-protected admin
 - **Tests:** Vitest, React Testing Library, Playwright
 - **Tooling:** ESLint, Prettier
 
@@ -52,7 +58,7 @@ copy .env.example .env.local     # Windows (macOS/Linux: cp .env.example .env.lo
 npm run dev
 ```
 
-Open http://localhost:3000. With an empty `.env.local` the development defaults are family password `family` and parent PIN `1234`.
+Open http://localhost:3000 and write a name to create an account. The admin section is at http://localhost:3000/admin; with an empty `.env.local` the development password is `admin`.
 
 No database setup is needed locally: an embedded PostgreSQL (PGlite) is created in `./.pglite`. Delete that folder to reset all progress.
 
@@ -60,13 +66,11 @@ No database setup is needed locally: an embedded PostgreSQL (PGlite) is created 
 
 ### Environment variables
 
-| Name                     | Required      | Purpose                                           |
-| ------------------------ | ------------- | ------------------------------------------------- |
-| `FAMILY_PASSWORD`        | in production | Password that opens the app on a device           |
-| `PARENT_PIN`             | in production | 4-digit PIN for the parent panel                  |
-| `SESSION_SECRET`         | in production | Long random string that signs the session cookies |
-| `DATABASE_URL`           | on Vercel     | Neon PostgreSQL connection string                 |
-| `NEXT_PUBLIC_CHILD_NAME` | no            | Child's name for the greeting on the home screen  |
+| Name             | Required      | Purpose                                           |
+| ---------------- | ------------- | ------------------------------------------------- |
+| `ADMIN_PASSWORD` | in production | Password for the admin section at `/admin`        |
+| `SESSION_SECRET` | in production | Long random string that signs the session cookies |
+| `DATABASE_URL`   | on Vercel     | Neon PostgreSQL connection string                 |
 
 ### Scripts
 
@@ -91,7 +95,7 @@ npm run test:e2e
 
 1. Push the repository to GitHub and import it in Vercel.
 2. In the Vercel project open **Storage**, create a **Neon** Postgres database and connect it. Check that the project now has a `DATABASE_URL` environment variable.
-3. Add `FAMILY_PASSWORD`, `PARENT_PIN` and `SESSION_SECRET` (and optionally `NEXT_PUBLIC_CHILD_NAME`) under **Settings → Environment Variables**.
+3. Add `ADMIN_PASSWORD` and `SESSION_SECRET` under **Settings → Environment Variables**. Use a long admin password: the site itself is open to anyone with the link.
 4. Deploy. Tables are created automatically on the first request; there is no migration step.
 
 On the phone, open the site in Chrome and choose **Add to Home screen** to install it like an app.
@@ -101,10 +105,10 @@ On the phone, open the site in Chrome and choose **Add to Home screen** to insta
 ```
 src/
   app/                    Routes and API route handlers
-    api/                  auth, state, sessions, parent/*
+    api/                  auth, state, sessions, admin/*
     lesson/[lessonId]/    Lesson page
     test/[unitId]/        Unit test page
-    review/  parent/  login/
+    review/  admin/  login/
   components/
     ui/                   Button, Card, Input, ProgressBar, Stars, WordVisual…
     layout/               Header, language toggle, providers
@@ -113,7 +117,7 @@ src/
     learning/             Question generator, session player, exercises
     progress/             Progress types, unlock rules, state query
     home/                 Daily plan, prize banner, course path
-    parent/               Parent panel, prize form, charts
+    admin/                Accounts list, account results, VIP, comments, prizes
     auth/                 Login
   hooks/                  useT, useLocalized, useMediaQuery…
   lib/                    Constants, dates, scoring, API client, i18n dictionaries
@@ -124,11 +128,12 @@ tests/e2e/                Playwright tests
 
 ## Adding content
 
-All course content lives in `src/features/content/data/units.ts`. Add a unit (or words to a unit) there and it appears on the path, in tests and in the parent panel. Rules checked by the tests: unique word ids, single lowercase English words, no repeated picture or translation inside a unit.
+All course content lives in `src/features/content/data/units.ts`. Add a unit (or words to a unit) there and it appears on the path, in tests and in the admin section. Rules checked by the tests: unique word ids, single lowercase English words, no repeated picture or translation inside a unit.
 
 ## My role and problems solved
 
 - **One code path, two databases.** Drizzle talks to Neon over HTTP in production and to embedded PGlite in development and tests, so the project runs locally with zero database setup. Tables are created by idempotent DDL at first use, which removes the migration step from deployment.
+- **Multi-account data model.** Every table is keyed by account, the name is normalised into a unique key, and account creation is a single race-safe upsert.
 - **Scoring cannot be faked by repeating.** Only first-attempt answers are sent to the server; the server computes the score, stars, spaced-repetition boxes and prize status.
 - **Stale session screens.** Next.js 16 keeps visited pages alive in the background (React `<Activity>`), so reopening a lesson showed the previous result. Session screens are keyed by `router.bfcacheId` to start fresh on every new navigation.
 - **Timezone-safe days.** Streaks, the daily limit and review dates use day keys calculated in `Asia/Tashkent`, not in the server's UTC clock.
