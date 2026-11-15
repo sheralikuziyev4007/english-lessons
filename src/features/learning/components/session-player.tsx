@@ -124,6 +124,7 @@ export function SessionPlayer({
           {state.phase === "intro" && introWord && (
             <IntroCard
               word={introWord}
+              learnerName={learnerName}
               position={state.introIndex + 1}
               total={introWords.length}
               onNext={() =>

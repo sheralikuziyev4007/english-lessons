@@ -1,22 +1,35 @@
 "use client";
 
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { WordVisual } from "@/components/ui/word-visual";
 import type { Word } from "@/features/content";
 import { ExerciseFrame } from "@/features/learning/components/exercise-frame";
 import { ListenButton } from "@/features/learning/components/listen-button";
+import { SpeakCheck } from "@/features/learning/components/speak-check";
+import { isRecognitionSupported } from "@/features/learning/lib/speech-recognition";
 import { useT } from "@/hooks/use-t";
 
 interface IntroCardProps {
   word: Word;
+  learnerName: string;
   position: number;
   total: number;
   onNext: () => void;
 }
 
-/** Presents a new word: picture, spelling, sound and meaning. */
-export function IntroCard({ word, position, total, onNext }: IntroCardProps) {
+/** Presents a new word: picture, spelling, sound, meaning and optional speaking. */
+export function IntroCard({
+  word,
+  learnerName,
+  position,
+  total,
+  onNext,
+}: IntroCardProps) {
   const t = useT();
+  // Chrome, Edge and Safari can listen; elsewhere the card simply has no microphone.
+  const [canListen] = useState(isRecognitionSupported);
   const isLast = position === total;
 
   return (
@@ -36,6 +49,7 @@ export function IntroCard({ word, position, total, onNext }: IntroCardProps) {
           {word.uz}
         </p>
       </div>
+      {canListen && <SpeakCheck word={word} learnerName={learnerName} />}
       <Button size="lg" className="w-full max-w-sm" onClick={onNext}>
         {isLast ? t.session.startPractice : t.session.next}
       </Button>

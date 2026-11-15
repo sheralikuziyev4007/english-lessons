@@ -123,6 +123,41 @@ async function answerStep(page: Page, correct: boolean): Promise<void> {
   await visible(page, "feedback").getByRole("button").click();
 }
 
+/**
+ * Replaces the browser's speech recogniser with one that "hears" the queued
+ * phrases in order (null = silence). Call before the page loads.
+ */
+export async function fakeMicrophone(
+  page: Page,
+  phrases: (string | null)[],
+): Promise<void> {
+  await page.addInitScript((queue: (string | null)[]) => {
+    class FakeRecognition {
+      onresult: ((event: unknown) => void) | null = null;
+      onerror: ((event: unknown) => void) | null = null;
+      onend: (() => void) | null = null;
+      start() {
+        setTimeout(() => {
+          const phrase = queue.shift();
+          if (phrase === null || phrase === undefined) {
+            this.onerror?.({ error: "no-speech" });
+          } else {
+            this.onresult?.({
+              results: [{ length: 1, isFinal: true, 0: { transcript: phrase } }],
+            });
+          }
+          this.onend?.();
+        }, 50);
+      }
+      abort() {}
+    }
+    Object.assign(window, {
+      SpeechRecognition: FakeRecognition,
+      webkitSpeechRecognition: FakeRecognition,
+    });
+  }, phrases);
+}
+
 /** Plays the open lesson, review or test to the result screen. */
 export async function completeSession(
   page: Page,

@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import {
   completeSession,
+  fakeMicrophone,
   login,
   openAccount,
   openAdmin,
@@ -171,4 +172,36 @@ test("the parent section belongs to one account and stays behind its PIN", async
 
   await page.goto("/parent");
   await expect(visible(page, "pin-create-form")).toBeVisible();
+});
+
+test("speaking practice checks the voice, allows a retry and never blocks", async ({
+  page,
+}) => {
+  test.setTimeout(60_000);
+  // The fake microphone hears: silence, a wrong word, then the right word.
+  await fakeMicrophone(page, [null, "banana", "it is red"]);
+  await login(page, "Speaker");
+  await page.goto("/lesson/colours-1");
+
+  // The first new-word card is "red".
+  const card = visible(page, "exercise");
+  await expect(card).toHaveAttribute("data-word-id", "red");
+  const status = visible(page, "speak-status");
+  await expect(status).toHaveAttribute("data-status", "idle");
+
+  await card.getByTestId("speak-button").click();
+  await expect(status).toHaveAttribute("data-status", "failed");
+
+  await card.getByTestId("speak-button").click();
+  await expect(status).toHaveAttribute("data-status", "heard");
+  await expect(status).toContainText("banana");
+
+  // The third attempt is right: the learner is praised by name.
+  await card.getByTestId("speak-button").click();
+  await expect(status).toHaveAttribute("data-status", "correct");
+  await expect(status).toContainText("Speaker");
+
+  // The other cards are passed without speaking; the lesson still ends with 100%.
+  await completeSession(page);
+  await expect(visible(page, "result-score")).toHaveText("100%");
 });

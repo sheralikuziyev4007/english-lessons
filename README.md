@@ -15,6 +15,7 @@ _Screenshot or GIF: add one here._
 - 12 units, 24 lessons, 118 words: colours, numbers, animals, family, body, food, school, home, clothes, toys, transport, zoo
 - Lesson flow: new-word cards (picture, spelling, sound, Uzbek meaning) followed by 16 questions
 - Five question types: picture → word, sound → picture, word → meaning, match the pairs, build or type the word
+- Optional speaking practice on every new-word card: the learner says the word, the browser checks it, and they can retry or simply go on (Chrome, Edge and Safari; needs HTTPS or localhost and microphone permission)
 - Missed questions come back at the end of the lesson
 - Unit tests in the entrance-exam format (three options per question); 70% opens the next unit
 - Spaced repetition (Leitner boxes): words return for review after 1, 2, 4, 8 and 16 days
@@ -144,6 +145,7 @@ All course content lives in `src/features/content/data/units.ts`. Add a unit (or
 - **One code path, two databases.** Drizzle talks to Neon over HTTP in production and to embedded PGlite in development and tests, so the project runs locally with zero database setup. Tables are created by idempotent DDL at first use, which removes the migration step from deployment.
 - **One results screen, two audiences.** The parent and admin sections render the same components; each supplies its own API calls through a small context, so nothing is duplicated.
 - **Multi-account data model.** Every table is keyed by account, the name is normalised into a unique key, and account creation is a single race-safe upsert.
+- **Free speech checking.** Speaking practice uses the browser's own speech recognition (no paid API). The matcher accepts digits and sound-alike spellings the recogniser returns ("4" or "for" for "four") and looks at every alternative guess; it is never scored, because recognition can mishear a correct answer.
 - **Scoring cannot be faked by repeating.** Only first-attempt answers are sent to the server; the server computes the score, stars, spaced-repetition boxes and prize status.
 - **Stale session screens.** Next.js 16 keeps visited pages alive in the background (React `<Activity>`), so reopening a lesson showed the previous result. Session screens are keyed by `router.bfcacheId` to start fresh on every new navigation.
 - **Timezone-safe days.** Streaks, the daily limit and review dates use day keys calculated in `Asia/Tashkent`, not in the server's UTC clock.
