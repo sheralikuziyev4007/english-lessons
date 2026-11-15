@@ -48,6 +48,28 @@ export async function openAccount(page: Page, name: string): Promise<Locator> {
   return detail;
 }
 
+/**
+ * Opens the parent section of the logged-in account. Chooses the PIN on the
+ * first visit, enters it later, and does nothing if it is still unlocked.
+ */
+export async function openParent(page: Page, pin: string): Promise<void> {
+  await page.goto("/parent");
+  const createForm = visible(page, "pin-create-form");
+  const enterForm = visible(page, "pin-enter-form");
+  const dashboard = visible(page, "parent-dashboard");
+
+  await expect(createForm.or(enterForm).or(dashboard).first()).toBeVisible();
+  if (await createForm.isVisible()) {
+    await createForm.locator("#parent-pin").fill(pin);
+    await createForm.locator("#parent-pin-confirm").fill(pin);
+    await createForm.locator('button[type="submit"]').click();
+  } else if (await enterForm.isVisible()) {
+    await enterForm.locator("#parent-pin").fill(pin);
+    await enterForm.locator('button[type="submit"]').click();
+  }
+  await expect(dashboard).toBeVisible();
+}
+
 /** Answers the question on screen. `correct: false` picks a wrong option where possible. */
 async function answerStep(page: Page, correct: boolean): Promise<void> {
   const exercise = visible(page, "exercise");

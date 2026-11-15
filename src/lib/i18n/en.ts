@@ -10,6 +10,7 @@ export const en = {
     language: "Language",
     logout: "Log out",
     logoutAs: (name: string) => `Log out (${name})`,
+    parents: "For parents",
     skipToContent: "Skip to content",
   },
   errors: {
@@ -19,6 +20,9 @@ export const en = {
     passwordRequired: "Enter the password.",
     wrongPassword: "Wrong password. Try again.",
     noteLong: "The comment is too long.",
+    pinFormat: "Enter 4 digits.",
+    wrongPin: "Wrong PIN. Try again.",
+    pinMismatch: "The two PINs are different.",
     unitRequired: "Choose a unit.",
     prizeTitleShort: "Describe the prize (at least 2 characters).",
     prizeTitleLong: "The prize text is too long.",
@@ -49,7 +53,7 @@ export const en = {
       count === 1 ? "1 word to review" : `${count} words to review`,
     planReviewNone: "Nothing to review today",
     planOffline: "Offline task",
-    planOfflineHint: "A grown-up ticks this one.",
+    planOfflineHint: "Your mum or dad ticks this one.",
     start: "Start",
     done: "Done",
     notDone: "Not done yet",
@@ -72,7 +76,7 @@ export const en = {
     goal: (unit: string, score: number) =>
       `Finish "${unit}" and get ${score}% or more in the test.`,
     earnedTitle: "You won the prize!",
-    earnedText: "Show this screen to a grown-up.",
+    earnedText: "Show this screen to your mum or dad.",
     progressLabel: "Progress to the prize",
   },
   session: {
@@ -150,6 +154,25 @@ export const en = {
     notePlaceholder: "For example: my nephew, 3rd grade",
     noteSave: "Save comment",
     noteSaved: "Saved.",
+    pinSet: "The parent PIN is set.",
+    pinNotSet: "The parent PIN is not set yet.",
+    pinReset: "Reset parent PIN",
+    pinResetHint:
+      "The parent will choose a new PIN the next time they open their section.",
+  },
+  parent: {
+    title: (name: string) => `${name}: results`,
+    pinTitle: "For parents",
+    pinText: "Enter your 4-digit PIN to see results and manage prizes.",
+    pinCreateText:
+      "Choose a 4-digit PIN. It keeps the parent section closed for your child, so do not share it.",
+    pinLabel: "PIN",
+    pinConfirmLabel: "PIN again",
+    pinCreate: "Save PIN",
+    unlock: "Open",
+    lock: "Lock",
+  },
+  overview: {
     summaryTitle: "Summary",
     streak: "Days in a row",
     stars: "Stars",

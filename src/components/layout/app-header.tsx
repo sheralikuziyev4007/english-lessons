@@ -1,18 +1,23 @@
 "use client";
 
+import { Lock } from "lucide-react";
 import Link from "next/link";
 
 import { AccountMenu } from "@/components/layout/account-menu";
 import { LanguageToggle } from "@/components/layout/language-toggle";
+import { buttonVariants } from "@/components/ui/button";
 import { useT } from "@/hooks/use-t";
 import { APP_NAME, ROUTES } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 
 interface AppHeaderProps {
   /** Hide on pages that do not belong to a learner account (admin). */
   showAccount?: boolean;
+  /** Link to the parent section of the logged-in account. */
+  showParentLink?: boolean;
 }
 
-export function AppHeader({ showAccount = true }: AppHeaderProps) {
+export function AppHeader({ showAccount = true, showParentLink = true }: AppHeaderProps) {
   const t = useT();
 
   return (
@@ -35,8 +40,23 @@ export function AppHeader({ showAccount = true }: AppHeaderProps) {
             {APP_NAME}
           </span>
         </Link>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <LanguageToggle />
+          {showAccount && showParentLink && (
+            <Link
+              href={ROUTES.parent}
+              data-testid="parent-link"
+              aria-label={t.common.parents}
+              title={t.common.parents}
+              className={cn(
+                buttonVariants({ variant: "ghost", size: "icon" }),
+                "lg:w-auto lg:px-3",
+              )}
+            >
+              <Lock className="size-5" aria-hidden="true" />
+              <span className="hidden text-sm lg:inline">{t.common.parents}</span>
+            </Link>
+          )}
           {showAccount && <AccountMenu />}
         </div>
       </div>

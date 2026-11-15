@@ -1,6 +1,16 @@
 import { expect, test } from "@playwright/test";
 
-import { completeSession, login, openAccount, openAdmin, visible } from "./helpers";
+import {
+  completeSession,
+  login,
+  openAccount,
+  openAdmin,
+  openParent,
+  visible,
+} from "./helpers";
+
+const ALI_PIN = "1357";
+const VALI_PIN = "2468";
 
 // One story told in order; the steps build on each other's data.
 test.describe.configure({ mode: "serial" });
@@ -26,7 +36,7 @@ test("keeps the admin section behind its password", async ({ page }) => {
   await expect(page.getByTestId("accounts-count")).toHaveCount(0);
 });
 
-test("a learner registers by name and earns the prize set by the admin", async ({
+test("a learner registers by name and earns the prize set by the parent", async ({
   page,
 }) => {
   test.setTimeout(120_000);
@@ -34,19 +44,15 @@ test("a learner registers by name and earns the prize set by the admin", async (
   await login(page, "Ali");
   await expect(visible(page, "greeting")).toContainText("Ali");
 
-  // Admin finds the new account, leaves a private comment and sets a prize.
-  await openAdmin(page);
-  await expect(visible(page, "accounts-count")).toContainText("1");
-  const detail = await openAccount(page, "Ali");
-  await detail.locator("#account-note").fill("My nephew, 2nd grade");
-  await detail.locator("#account-note").press("Tab");
-  await detail.locator("form:has(#account-note) button[type='submit']").click();
-  await expect(visible(page, "note-saved")).toBeVisible();
-
-  await detail.locator("#prize-unit").selectOption("colours");
-  await detail.locator("#prize-title").fill("Bicycle bell");
-  await detail.locator("#prize-score").fill("80");
-  await detail
+  // The parent opens their section for the first time, chooses a PIN and sets a prize.
+  await visible(page, "parent-link").click();
+  await expect(page).toHaveURL(/\/parent$/);
+  await openParent(page, ALI_PIN);
+  await expect(visible(page, "summary-lessons")).toContainText("0 / 24");
+  await page.locator("#prize-unit").selectOption("colours");
+  await page.locator("#prize-title").fill("Bicycle bell");
+  await page.locator("#prize-score").fill("80");
+  await page
     .locator("form[aria-labelledby='prize-form-title'] button[type='submit']")
     .click();
   await expect(visible(page, "prize-item")).toHaveAttribute("data-status", "active");
@@ -73,13 +79,30 @@ test("a learner registers by name and earns the prize set by the admin", async (
   await completeSession(page);
   await expect(visible(page, "prize-earned")).toContainText("Bicycle bell");
 
-  // Admin sees the results and hands the prize over.
-  const results = await openAccount(page, "Ali");
-  await expect(results.locator("#account-note")).toHaveValue("My nephew, 2nd grade");
+  // The parent sees the results and hands the prize over.
+  await openParent(page, ALI_PIN);
   await expect(visible(page, "summary-lessons")).toContainText("2 / 24");
   await expect(visible(page, "prize-item")).toHaveAttribute("data-status", "earned");
   await visible(page, "prize-item").getByRole("button").click();
   await expect(visible(page, "prize-item")).toHaveAttribute("data-status", "given");
+});
+
+test("the admin sees every account, its results and a private comment", async ({
+  page,
+}) => {
+  await openAdmin(page);
+  await expect(visible(page, "accounts-count")).toContainText("1");
+
+  const detail = await openAccount(page, "Ali");
+  await expect(visible(page, "summary-lessons")).toContainText("2 / 24");
+  await expect(visible(page, "prize-item")).toHaveAttribute("data-status", "given");
+
+  await detail.locator("#account-note").fill("My nephew, 2nd grade");
+  await detail.locator("form:has(#account-note) button[type='submit']").click();
+  await expect(visible(page, "note-saved")).toBeVisible();
+
+  const reopened = await openAccount(page, "Ali");
+  await expect(reopened.locator("#account-note")).toHaveValue("My nephew, 2nd grade");
 });
 
 test("the daily limit stops a regular account but not a VIP one", async ({ page }) => {
@@ -113,4 +136,39 @@ test("each name is a separate account and the same name opens the same one", asy
   await openAdmin(page);
   await expect(visible(page, "accounts-count")).toContainText("2");
   await expect(page.getByTestId("account-item")).toHaveCount(2);
+});
+
+test("the parent section belongs to one account and stays behind its PIN", async ({
+  page,
+}) => {
+  // Vali's parent sees Vali's results, not Ali's, and chooses a separate PIN.
+  await login(page, "Vali");
+  await openParent(page, VALI_PIN);
+  await expect(visible(page, "parent-dashboard")).toContainText("Vali");
+  await expect(visible(page, "summary-lessons")).toContainText("0 / 24");
+  await expect(page.getByTestId("prize-item")).toHaveCount(0);
+
+  // After locking, a wrong PIN does not open it.
+  await visible(page, "parent-dashboard").getByRole("button").first().click();
+  const enterForm = visible(page, "pin-enter-form");
+  await enterForm.locator("#parent-pin").fill("0000");
+  await enterForm.locator('button[type="submit"]').click();
+  await expect(page.locator("#parent-pin-error").filter({ visible: true })).toBeVisible();
+  await expect(
+    page.getByTestId("parent-dashboard").filter({ visible: true }),
+  ).toHaveCount(0);
+
+  // Ali's PIN does not open Vali's section either.
+  await enterForm.locator("#parent-pin").fill(ALI_PIN);
+  await enterForm.locator('button[type="submit"]').click();
+  await expect(page.locator("#parent-pin-error").filter({ visible: true })).toBeVisible();
+
+  // The admin can reset a forgotten PIN; the parent then chooses a new one.
+  const detail = await openAccount(page, "Vali");
+  await detail.getByTestId("pin-status").scrollIntoViewIfNeeded();
+  await detail.locator("[data-testid='pin-status'] + button").click();
+  await expect(detail.locator("[data-testid='pin-status'] + button")).toHaveCount(0);
+
+  await page.goto("/parent");
+  await expect(visible(page, "pin-create-form")).toBeVisible();
 });

@@ -12,6 +12,7 @@ export const uz: Dictionary = {
     language: "Til",
     logout: "Chiqish",
     logoutAs: (name: string) => `Chiqish (${name})`,
+    parents: "Ota-onalar uchun",
     skipToContent: "Asosiy qismga o'tish",
   },
   errors: {
@@ -21,6 +22,9 @@ export const uz: Dictionary = {
     passwordRequired: "Parolni kiriting.",
     wrongPassword: "Parol noto'g'ri. Qayta urinib ko'ring.",
     noteLong: "Izoh juda uzun.",
+    pinFormat: "4 ta raqam kiriting.",
+    wrongPin: "PIN kod noto'g'ri. Qayta urinib ko'ring.",
+    pinMismatch: "Ikki PIN kod bir xil emas.",
     unitRequired: "Bo'limni tanlang.",
     prizeTitleShort: "Prizni yozing (kamida 2 ta belgi).",
     prizeTitleLong: "Priz matni juda uzun.",
@@ -50,7 +54,7 @@ export const uz: Dictionary = {
     planReviewCount: (count: number) => `${count} ta so'zni takrorlash kerak`,
     planReviewNone: "Bugun takrorlanadigan so'z yo'q",
     planOffline: "Ekransiz topshiriq",
-    planOfflineHint: "Buni kattalar belgilaydi.",
+    planOfflineHint: "Buni ota-onang belgilaydi.",
     start: "Boshlash",
     done: "Bajarildi",
     notDone: "Hali bajarilmagan",
@@ -72,7 +76,7 @@ export const uz: Dictionary = {
     goal: (unit: string, score: number) =>
       `"${unit}" bo'limini tugat va testdan kamida ${score}% ol.`,
     earnedTitle: "Sen prizni yutding!",
-    earnedText: "Bu ekranni kattalarga ko'rsat.",
+    earnedText: "Bu ekranni ota-onangga ko'rsat.",
     progressLabel: "Prizgacha bo'lgan yo'l",
   },
   session: {
@@ -150,6 +154,25 @@ export const uz: Dictionary = {
     notePlaceholder: "Masalan: jiyanim, 3-sinf",
     noteSave: "Izohni saqlash",
     noteSaved: "Saqlandi.",
+    pinSet: "Ota-ona PIN kodi o'rnatilgan.",
+    pinNotSet: "Ota-ona PIN kodi hali o'rnatilmagan.",
+    pinReset: "Ota-ona PIN kodini bekor qilish",
+    pinResetHint: "Ota-ona o'z bo'limini keyingi safar ochganda yangi PIN kod tanlaydi.",
+  },
+  parent: {
+    title: (name: string) => `${name}: natijalar`,
+    pinTitle: "Ota-onalar uchun",
+    pinText:
+      "Natijalarni ko'rish va prizlarni boshqarish uchun 4 xonali PIN kodni kiriting.",
+    pinCreateText:
+      "4 xonali PIN kod tanlang. U bu bo'limni farzandingizdan yopib turadi, shuning uchun unga aytmang.",
+    pinLabel: "PIN kod",
+    pinConfirmLabel: "PIN kod yana bir marta",
+    pinCreate: "PIN kodni saqlash",
+    unlock: "Ochish",
+    lock: "Yopish",
+  },
+  overview: {
     summaryTitle: "Umumiy natija",
     streak: "Ketma-ket kun",
     stars: "Yulduzcha",
