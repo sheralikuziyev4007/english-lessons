@@ -1,6 +1,6 @@
 # Starway English
 
-A daily English course for young learners (age 7–9, starting from zero) with name-only accounts, a parent section, an admin section, prizes and spaced repetition. Vocabulary follows the Cambridge **Pre A1 Starters** wordlist.
+A daily English course for young learners (age 7–9, starting from zero) with name-only accounts, a parent section, an admin section, prizes and spaced repetition. Two stages so far: **Starters (Pre A1)** and **Movers (A1)**, with vocabulary from the Cambridge Young Learners wordlists.
 
 **Live demo:** _add your Vercel URL here_
 
@@ -12,9 +12,12 @@ _Screenshot or GIF: add one here._
 
 **For the child**
 
-- 12 units, 24 lessons, 118 words: colours, numbers, animals, family, body, food, school, home, clothes, toys, transport, zoo
+- **Stage 1 · Starters (Pre A1):** 12 units, 24 lessons, 118 words: colours, numbers, animals, family, body, food, school, home, clothes, toys, transport, zoo
+- **Stage 2 · Movers (A1):** 24 units, 48 lessons, 218 words: numbers to 100, pets, fruit, food, meals, feelings, weather, nature, wild animals, jobs, health, town, house, daily routine, actions, sports, hobbies, classroom, holidays, trips, clothes, adjectives
+- Movers opens when the last Starters unit test is passed; stages are shown as collapsible sections
+- Read-and-choose sentence questions in Movers: every word has a short sentence with a gap ("The ___ is a baby dog.")
 - Lesson flow: new-word cards (picture, spelling, sound, Uzbek meaning) followed by 16 questions
-- Five question types: picture → word, sound → picture, word → meaning, match the pairs, build or type the word
+- Six question types: picture → word, sound → picture, word → meaning, sentence with a gap, match the pairs, build or type the word
 - Optional speaking practice on every new-word card: the learner says the word, the browser checks it, and they can retry or simply go on (Chrome, Edge and Safari; needs HTTPS or localhost and microphone permission)
 - Missed questions come back at the end of the lesson
 - Unit tests in the entrance-exam format (three options per question); 70% opens the next unit
@@ -138,7 +141,7 @@ tests/e2e/                Playwright tests
 
 ## Adding content
 
-All course content lives in `src/features/content/data/units.ts`. Add a unit (or words to a unit) there and it appears on the path, in tests and in the parent and admin sections. Rules checked by the tests: unique word ids, single lowercase English words, no repeated picture or translation inside a unit.
+Course content lives in `src/features/content/data/` (`starters.ts`, `movers.ts`); stages are listed in `src/features/content/index.ts`. Add a unit (or words to a unit) there and it appears on the path, in tests and in the parent and admin sections. Rules checked by the tests: unique word ids, single lowercase English words, no picture or translation used twice anywhere in the course, and one sentence with exactly one gap for every Movers word.
 
 ## My role and problems solved
 
@@ -149,5 +152,6 @@ All course content lives in `src/features/content/data/units.ts`. Add a unit (or
 - **Scoring cannot be faked by repeating.** Only first-attempt answers are sent to the server; the server computes the score, stars, spaced-repetition boxes and prize status.
 - **Stale session screens.** Next.js 16 keeps visited pages alive in the background (React `<Activity>`), so reopening a lesson showed the previous result. Session screens are keyed by `router.bfcacheId` to start fresh on every new navigation.
 - **Timezone-safe days.** Streaks, the daily limit and review dates use day keys calculated in `Asia/Tashkent`, not in the server's UTC clock.
+- **Unambiguous questions at scale.** With 336 words, two words sharing a picture or a translation would make a question have two right answers. A test now enforces uniqueness across the whole course, not just inside a unit.
 - **Exam alignment.** Unit tests use the same three-option format as the entrance exam the learner is preparing for, and the question generator guarantees that no two options look the same.
 - **Accessibility.** Semantic landmarks and headings, labelled controls, visible focus, keyboard-operable exercises, `lang` attributes on English and Uzbek text, reduced-motion support.
