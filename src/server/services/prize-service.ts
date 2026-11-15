@@ -3,7 +3,7 @@ import "server-only";
 import { and, desc, eq, inArray } from "drizzle-orm";
 
 import { getUnit } from "@/features/content";
-import type { PrizeAction, PrizeValues } from "@/features/parent/schemas";
+import type { PrizeAction, PrizeValues } from "@/features/admin/schemas";
 import type { Prize, PrizeStatus } from "@/features/progress/types";
 import { getDb } from "@/server/db/client";
 import { prizes } from "@/server/db/schema";
@@ -24,17 +24,25 @@ export function toPrize(row: PrizeRow): Prize {
   };
 }
 
-export async function listPrizes(): Promise<Prize[]> {
+export async function listPrizes(accountId: number): Promise<Prize[]> {
   const db = await getDb();
   const rows = await db
     .select()
     .from(prizes)
-    .where(inArray(prizes.status, ["active", "earned", "given"]))
+    .where(
+      and(
+        eq(prizes.accountId, accountId),
+        inArray(prizes.status, ["active", "earned", "given"]),
+      ),
+    )
     .orderBy(desc(prizes.createdAt));
   return rows.map(toPrize);
 }
 
-export async function createPrize(values: PrizeValues): Promise<Prize> {
+export async function createPrize(
+  accountId: number,
+  values: PrizeValues,
+): Promise<Prize> {
   if (!getUnit(values.unitId)) throw new HttpError(400, "invalid_request");
   const db = await getDb();
 
@@ -42,12 +50,19 @@ export async function createPrize(values: PrizeValues): Promise<Prize> {
     .select({ id: prizes.id })
     .from(prizes)
     .where(
-      and(eq(prizes.unitId, values.unitId), inArray(prizes.status, ["active", "earned"])),
+      and(
+        eq(prizes.accountId, accountId),
+        eq(prizes.unitId, values.unitId),
+        inArray(prizes.status, ["active", "earned"]),
+      ),
     )
     .limit(1);
   if (open.length > 0) throw new HttpError(409, "prize_exists");
 
-  const [created] = await db.insert(prizes).values(values).returning();
+  const [created] = await db
+    .insert(prizes)
+    .values({ ...values, accountId })
+    .returning();
   return toPrize(created);
 }
 

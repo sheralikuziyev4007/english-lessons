@@ -1,8 +1,7 @@
 import { endSession } from "@/server/auth/session";
-import { json, route } from "@/server/http";
+import { json, publicRoute } from "@/server/http";
 
-export const POST = route(null, async () => {
-  await endSession("family");
-  await endSession("parent");
+export const POST = publicRoute(async () => {
+  await endSession("account");
   return json({ ok: true });
 });

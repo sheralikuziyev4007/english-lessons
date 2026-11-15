@@ -12,18 +12,23 @@ import type {
   TestProgress,
   WordProgress,
 } from "@/features/progress/types";
-import { LEARNED_BOX, PASS_SCORE, REVIEW_REF_ID } from "@/lib/constants";
+import {
+  DAILY_NEW_LESSON_LIMIT,
+  LEARNED_BOX,
+  PASS_SCORE,
+  REVIEW_REF_ID,
+} from "@/lib/constants";
 import { computeStreak, dayKey } from "@/lib/dates";
 import { computeScore, computeStars, nextSrsState } from "@/lib/scoring";
 import { getDb, type Db } from "@/server/db/client";
-import { days, prizes, sessions, wordProgress } from "@/server/db/schema";
+import { accounts, days, prizes, sessions, wordProgress } from "@/server/db/schema";
 import { HttpError } from "@/server/http";
 import { toPrize } from "@/server/services/prize-service";
 
 const STREAK_LOOKBACK_DAYS = 400;
 const UNIT_ORDER = new Map(UNITS.map((unit, index) => [unit.id, index]));
 
-/** Picks the prize to show the child: an earned one first, then the nearest unit. */
+/** Picks the prize to show the learner: an earned one first, then the nearest unit. */
 function pickCurrentPrize(open: Prize[]): Prize | null {
   const byUnitOrder = (a: Prize, b: Prize) =>
     (UNIT_ORDER.get(a.unitId) ?? 0) - (UNIT_ORDER.get(b.unitId) ?? 0);
@@ -32,11 +37,16 @@ function pickCurrentPrize(open: Prize[]): Prize | null {
   return earned[0] ?? active[0] ?? null;
 }
 
-export async function getState(today: string = dayKey()): Promise<AppState> {
+export async function getState(
+  accountId: number,
+  today: string = dayKey(),
+): Promise<AppState> {
   const db = await getDb();
+  const mine = eq(sessions.accountId, accountId);
 
-  const [bestRows, dayRows, wordRows, todayRows, todayFlags, prizeRows] =
+  const [accountRows, bestRows, dayRows, wordRows, todayRows, todayFlags, prizeRows] =
     await Promise.all([
+      db.select().from(accounts).where(eq(accounts.id, accountId)),
       db
         .select({
           kind: sessions.kind,
@@ -46,20 +56,37 @@ export async function getState(today: string = dayKey()): Promise<AppState> {
           firstDay: min(sessions.day),
         })
         .from(sessions)
+        .where(mine)
         .groupBy(sessions.kind, sessions.refId),
       db
         .selectDistinct({ day: sessions.day })
         .from(sessions)
+        .where(mine)
         .orderBy(desc(sessions.day))
         .limit(STREAK_LOOKBACK_DAYS),
-      db.select().from(wordProgress),
-      db.select({ kind: sessions.kind }).from(sessions).where(eq(sessions.day, today)),
-      db.select().from(days).where(eq(days.day, today)),
+      db.select().from(wordProgress).where(eq(wordProgress.accountId, accountId)),
+      db
+        .select({ kind: sessions.kind })
+        .from(sessions)
+        .where(and(mine, eq(sessions.day, today))),
+      db
+        .select()
+        .from(days)
+        .where(and(eq(days.accountId, accountId), eq(days.day, today))),
       db
         .select()
         .from(prizes)
-        .where(inArray(prizes.status, ["active", "earned"])),
+        .where(
+          and(
+            eq(prizes.accountId, accountId),
+            inArray(prizes.status, ["active", "earned"]),
+          ),
+        ),
     ]);
+
+  // The cookie can outlive the account (e.g. after a database reset).
+  const account = accountRows[0];
+  if (!account) throw new HttpError(401, "unauthorized");
 
   const lessons: Record<string, LessonProgress> = {};
   const tests: Record<string, TestProgress> = {};
@@ -96,6 +123,7 @@ export async function getState(today: string = dayKey()): Promise<AppState> {
   const todayKinds = new Set(todayRows.map((row) => row.kind));
 
   return {
+    account: { id: account.id, name: account.name, isVip: account.isVip },
     today,
     lessons,
     tests,
@@ -129,6 +157,7 @@ function assertValidTarget(input: SessionInput): void {
 
 async function updateWordProgress(
   db: Db,
+  accountId: number,
   input: SessionInput,
   today: string,
 ): Promise<void> {
@@ -142,7 +171,9 @@ async function updateWordProgress(
   const existing = await db
     .select()
     .from(wordProgress)
-    .where(inArray(wordProgress.wordId, wordIds));
+    .where(
+      and(eq(wordProgress.accountId, accountId), inArray(wordProgress.wordId, wordIds)),
+    );
   const current = new Map(existing.map((row) => [row.wordId, row]));
 
   const rows = wordIds.map((wordId) => {
@@ -150,6 +181,7 @@ async function updateWordProgress(
     const correct = outcome.get(wordId) ?? false;
     const next = nextSrsState(previous?.box ?? 0, correct, today);
     return {
+      accountId,
       wordId,
       box: next.box,
       dueDay: next.dueDay,
@@ -163,7 +195,7 @@ async function updateWordProgress(
     .insert(wordProgress)
     .values(rows)
     .onConflictDoUpdate({
-      target: wordProgress.wordId,
+      target: [wordProgress.accountId, wordProgress.wordId],
       set: {
         box: sql`excluded.box`,
         dueDay: sql`excluded.due_day`,
@@ -175,11 +207,22 @@ async function updateWordProgress(
 }
 
 /** Marks the unit's active prize as earned when the test score is high enough. */
-async function awardPrize(db: Db, unitId: string, score: number): Promise<Prize | null> {
+async function awardPrize(
+  db: Db,
+  accountId: number,
+  unitId: string,
+  score: number,
+): Promise<Prize | null> {
   const [active] = await db
     .select()
     .from(prizes)
-    .where(and(eq(prizes.unitId, unitId), eq(prizes.status, "active")))
+    .where(
+      and(
+        eq(prizes.accountId, accountId),
+        eq(prizes.unitId, unitId),
+        eq(prizes.status, "active"),
+      ),
+    )
     .limit(1);
   if (!active || score < active.minScore) return null;
 
@@ -191,12 +234,40 @@ async function awardPrize(db: Db, unitId: string, score: number): Promise<Prize 
   return updated ? toPrize(updated) : null;
 }
 
+/**
+ * Server-side daily cap: a non-VIP account may start only a limited number of
+ * new lessons per day. Repeating a finished lesson is always allowed.
+ */
+async function assertWithinDailyLimit(
+  db: Db,
+  accountId: number,
+  lessonId: string,
+  today: string,
+): Promise<void> {
+  const [[account], firstDays] = await Promise.all([
+    db.select({ isVip: accounts.isVip }).from(accounts).where(eq(accounts.id, accountId)),
+    db
+      .select({ refId: sessions.refId, firstDay: min(sessions.day) })
+      .from(sessions)
+      .where(and(eq(sessions.accountId, accountId), eq(sessions.kind, "lesson")))
+      .groupBy(sessions.refId),
+  ]);
+  if (!account) throw new HttpError(401, "unauthorized");
+  if (account.isVip || firstDays.some((row) => row.refId === lessonId)) return;
+
+  const newToday = firstDays.filter((row) => row.firstDay === today).length;
+  if (newToday >= DAILY_NEW_LESSON_LIMIT) throw new HttpError(403, "daily_limit");
+}
+
 export async function recordSession(
+  accountId: number,
   input: SessionInput,
   today: string = dayKey(),
 ): Promise<SessionResult> {
   assertValidTarget(input);
   const db = await getDb();
+  if (input.kind === "lesson")
+    await assertWithinDailyLimit(db, accountId, input.refId, today);
 
   const total = input.answers.length;
   const correct = input.answers.filter((answer) => answer.correct).length;
@@ -204,6 +275,7 @@ export async function recordSession(
   const stars = input.kind === "review" ? 0 : computeStars(score);
 
   await db.insert(sessions).values({
+    accountId,
     kind: input.kind,
     refId: input.refId,
     correct,
@@ -213,10 +285,10 @@ export async function recordSession(
     durationSec: input.durationSec,
     day: today,
   });
-  await updateWordProgress(db, input, today);
+  await updateWordProgress(db, accountId, input, today);
 
   const prizeEarned =
-    input.kind === "test" ? await awardPrize(db, input.refId, score) : null;
+    input.kind === "test" ? await awardPrize(db, accountId, input.refId, score) : null;
   const passed = input.kind === "test" ? score >= PASS_SCORE : true;
 
   return { score, stars, passed, prizeEarned };

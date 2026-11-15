@@ -1,4 +1,6 @@
-import { json, route } from "@/server/http";
+import { accountRoute, json } from "@/server/http";
 import { getState } from "@/server/services/progress-service";
 
-export const GET = route("family", async () => json(await getState()));
+export const GET = accountRoute(async (_request, _context, accountId) =>
+  json(await getState(accountId)),
+);

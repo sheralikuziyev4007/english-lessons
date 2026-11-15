@@ -2,21 +2,22 @@ export const APP_NAME = "Starway English";
 export const APP_DESCRIPTION =
   "A daily English course for young learners, built around the Cambridge Pre A1 Starters level.";
 
-/** All "today" calculations use the family's local time zone. */
+/** All "today" calculations use the learners' local time zone. */
 export const APP_TIME_ZONE = "Asia/Tashkent";
 
 export const ROUTES = {
   home: "/",
   login: "/login",
   review: "/review",
-  parent: "/parent",
+  admin: "/admin",
   lesson: (lessonId: string) => `/lesson/${lessonId}`,
   test: (unitId: string) => `/test/${unitId}`,
 } as const;
 
 export const QUERY_KEYS = {
   state: ["state"],
-  parentOverview: ["parent-overview"],
+  adminAccounts: ["admin", "accounts"],
+  adminAccount: (accountId: number) => ["admin", "accounts", accountId] as const,
 } as const;
 
 /** Minimum unit test score (percent) that unlocks the next unit. */
@@ -55,11 +56,15 @@ export const ACTIVITY_DAYS = 7;
 export const TARGET_LESSONS_PER_WEEK = 5;
 export const ROADMAP_TOLERANCE_LESSONS = 2;
 
-export const SESSION_COOKIE = "family_session";
-export const PARENT_COOKIE = "parent_session";
+export const SESSION_COOKIE = "account_session";
+export const ADMIN_COOKIE = "admin_session";
 export const SESSION_MAX_AGE_SEC = 60 * 60 * 24 * 180;
-export const PARENT_MAX_AGE_SEC = 60 * 30;
-export const PIN_LENGTH = 4;
+export const ADMIN_MAX_AGE_SEC = 60 * 60 * 12;
+
+export const NAME_MIN_LENGTH = 2;
+export const NAME_MAX_LENGTH = 30;
+export const NOTE_MAX_LENGTH = 1000;
+export const PASSWORD_MAX_LENGTH = 200;
 
 export const MAX_SESSION_DURATION_SEC = 60 * 60 * 2;
 export const MAX_SESSION_ANSWERS = 100;

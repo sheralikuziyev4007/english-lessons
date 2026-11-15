@@ -1,8 +1,8 @@
 import { sessionInputSchema } from "@/features/learning/schemas";
-import { json, parseBody, route } from "@/server/http";
+import { accountRoute, json, parseBody } from "@/server/http";
 import { recordSession } from "@/server/services/progress-service";
 
-export const POST = route("family", async (request) => {
+export const POST = accountRoute(async (request, _context, accountId) => {
   const input = await parseBody(request, sessionInputSchema);
-  return json(await recordSession(input), 201);
+  return json(await recordSession(accountId, input), 201);
 });

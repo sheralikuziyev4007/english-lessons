@@ -4,7 +4,7 @@ import { unstable_rethrow } from "next/navigation";
 import type { NextRequest } from "next/server";
 import type { z } from "zod";
 
-import { hasRole, type Role } from "@/server/auth/session";
+import { getAccountId, isAdmin } from "@/server/auth/session";
 
 export class HttpError extends Error {
   constructor(
@@ -29,24 +29,19 @@ export async function parseBody<T>(
   return parsed.data;
 }
 
+/** Parses a positive integer id from a dynamic route segment. */
+export function parseId(value: string): number {
+  const id = Number(value);
+  if (!Number.isInteger(id) || id <= 0) throw new HttpError(400, "invalid_request");
+  return id;
+}
+
 type Handler<Context> = (request: NextRequest, context: Context) => Promise<Response>;
 
-/**
- * Wraps a route handler with the role check and uniform JSON errors:
- * 401 = not logged in, 403 = parent panel locked.
- */
-export function route<Context>(
-  role: Role | null,
-  handler: Handler<Context>,
-): Handler<Context> {
+/** Turns thrown errors into uniform JSON responses. */
+export function publicRoute<Context>(handler: Handler<Context>): Handler<Context> {
   return async (request, context) => {
     try {
-      if (role && !(await hasRole("family"))) {
-        return json({ error: "unauthorized" }, 401);
-      }
-      if (role === "parent" && !(await hasRole("parent"))) {
-        return json({ error: "parent_locked" }, 403);
-      }
       return await handler(request, context);
     } catch (error) {
       // Let Next.js handle its own control-flow errors (e.g. prerender bail-outs).
@@ -58,4 +53,27 @@ export function route<Context>(
       return json({ error: "internal_error" }, 500);
     }
   };
+}
+
+/** For learners: answers 401 without a session and passes the account id on. */
+export function accountRoute<Context>(
+  handler: (
+    request: NextRequest,
+    context: Context,
+    accountId: number,
+  ) => Promise<Response>,
+): Handler<Context> {
+  return publicRoute(async (request, context) => {
+    const accountId = await getAccountId();
+    if (accountId === null) throw new HttpError(401, "unauthorized");
+    return handler(request, context, accountId);
+  });
+}
+
+/** For the admin section: answers 403 until the admin password was entered. */
+export function adminRoute<Context>(handler: Handler<Context>): Handler<Context> {
+  return publicRoute(async (request, context) => {
+    if (!(await isAdmin())) throw new HttpError(403, "admin_locked");
+    return handler(request, context);
+  });
 }

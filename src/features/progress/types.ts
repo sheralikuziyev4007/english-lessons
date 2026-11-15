@@ -36,8 +36,17 @@ export interface TodayStats {
   offlineDone: boolean;
 }
 
-/** Everything the child-facing screens need, returned by GET /api/state. */
+/** The logged-in learner. */
+export interface Account {
+  id: number;
+  name: string;
+  /** VIP accounts have no daily limit on new lessons. */
+  isVip: boolean;
+}
+
+/** Everything the learner-facing screens need, returned by GET /api/state. */
 export interface AppState {
+  account: Account;
   today: string;
   lessons: Record<string, LessonProgress>;
   tests: Record<string, TestProgress>;
