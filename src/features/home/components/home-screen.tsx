@@ -1,18 +1,25 @@
 "use client";
 
 import { AppHeader } from "@/components/layout/app-header";
-import { UNITS } from "@/features/content";
+import { getStageIdOfUnit, STAGES } from "@/features/content";
 import { DailyPlan } from "@/features/home/components/daily-plan";
 import { HomeSkeleton } from "@/features/home/components/home-skeleton";
 import { PrizeBanner } from "@/features/home/components/prize-banner";
 import { StatsRow } from "@/features/home/components/stats-row";
-import { UnitCard } from "@/features/home/components/unit-card";
+import { StageSection } from "@/features/home/components/stage-section";
 import { StateGate } from "@/features/progress/components/state-gate";
+import { getNextStep } from "@/features/progress/lib/unlock";
 import type { AppState } from "@/features/progress/types";
 import { useT } from "@/hooks/use-t";
 
 function HomeContent({ state }: { state: AppState }) {
   const t = useT();
+  // The stage with the learner's next step is open; a finished course shows the last one.
+  const next = getNextStep(state);
+  const currentStageId =
+    next.type === "finished"
+      ? STAGES[STAGES.length - 1]?.id
+      : getStageIdOfUnit(next.unit.id);
 
   return (
     <div className="flex flex-col gap-6">
@@ -35,11 +42,15 @@ function HomeContent({ state }: { state: AppState }) {
           <h2 id="units-title" className="text-xl font-black">
             {t.home.unitsTitle}
           </h2>
-          <ol className="flex flex-col gap-3">
-            {UNITS.map((unit, index) => (
-              <UnitCard key={unit.id} unit={unit} position={index + 1} state={state} />
-            ))}
-          </ol>
+          {STAGES.map((stage, index) => (
+            <StageSection
+              key={stage.id}
+              stage={stage}
+              previousName={STAGES[index - 1]?.name ?? null}
+              isCurrent={stage.id === currentStageId}
+              state={state}
+            />
+          ))}
         </section>
       </div>
     </div>

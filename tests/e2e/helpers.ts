@@ -158,18 +158,24 @@ export async function fakeMicrophone(
   }, phrases);
 }
 
-/** Plays the open lesson, review or test to the result screen. */
+/**
+ * Plays the open lesson, review or test to the result screen and returns how
+ * many sentence (read-and-choose) questions were asked on the way.
+ */
 export async function completeSession(
   page: Page,
   options = { correct: true },
-): Promise<void> {
+): Promise<{ sentenceQuestions: number }> {
   const step = visible(page, "step");
   const result = visible(page, "result");
+  const sentence = visible(page, "sentence");
+  let sentenceQuestions = 0;
   await expect(step).toBeVisible();
 
   for (let guard = 0; guard < 80; guard += 1) {
-    if (await result.isVisible()) return;
+    if (await result.isVisible()) return { sentenceQuestions };
     const current = await step.getAttribute("data-step");
+    if (await sentence.isVisible()) sentenceQuestions += 1;
     await answerStep(page, options.correct);
     // Wait for the next question, or for the result once the last one is answered.
     const nextStep = page

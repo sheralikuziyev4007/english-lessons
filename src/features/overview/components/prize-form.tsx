@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Field, fieldErrorId } from "@/components/ui/field";
 import { Input, inputClassName } from "@/components/ui/input";
-import { UNITS } from "@/features/content";
+import { STAGES } from "@/features/content";
 import { useCreatePrize } from "@/features/overview/hooks/use-overview-mutations";
 import { prizeSchema, type PrizeValues } from "@/features/overview/schemas";
 import { useErrorText } from "@/hooks/use-error-text";
@@ -78,10 +78,14 @@ export function PrizeForm() {
             {...register("unitId")}
           >
             <option value="">{t.overview.prizeUnitPlaceholder}</option>
-            {UNITS.map((unit, index) => (
-              <option key={unit.id} value={unit.id}>
-                {index + 1}. {localized(unit.title)}
-              </option>
+            {STAGES.map((stage) => (
+              <optgroup key={stage.id} label={`${stage.name} · ${stage.level}`}>
+                {stage.units.map((unit, index) => (
+                  <option key={unit.id} value={unit.id}>
+                    {index + 1}. {localized(unit.title)}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </Field>

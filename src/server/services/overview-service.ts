@@ -72,11 +72,7 @@ export async function getOverview(
     prizes: prizeList,
     activity,
     hardWords,
-    roadmap: buildRoadmap(
-      startRows[0]?.day ?? null,
-      Object.keys(state.lessons).length,
-      today,
-    ),
+    roadmap: buildRoadmap(startRows[0]?.day ?? null, Object.keys(state.lessons), today),
   };
 }
 

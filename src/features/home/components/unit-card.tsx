@@ -48,9 +48,9 @@ export function UnitCard({ unit, position, state }: UnitCardProps) {
             {unit.icon}
           </span>
           <div className="min-w-0">
-            <h3 id={titleId} className="text-lg leading-tight font-black">
+            <h4 id={titleId} className="text-lg leading-tight font-black">
               {position}. {localized(unit.title)}
-            </h3>
+            </h4>
             <p className="text-ink-soft text-sm font-bold">
               {t.home.wordsCount(unit.words.length)}
               {!unlocked && ` · ${t.home.locked}`}

@@ -1,7 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { getUnitLessons, UNITS } from "@/features/content";
+import { getUnitLessons, STAGES } from "@/features/content";
 import { isLessonDone, isTestPassed } from "@/features/progress/lib/unlock";
 import type { AppState } from "@/features/progress/types";
 import { useLocalized } from "@/hooks/use-localized";
@@ -33,42 +33,56 @@ export function TestsTable({ state }: { state: AppState }) {
               </th>
             </tr>
           </thead>
-          <tbody>
-            {UNITS.map((unit) => {
-              const lessons = getUnitLessons(unit.id);
-              const done = lessons.filter((lesson) =>
-                isLessonDone(lesson.id, state),
-              ).length;
-              const test = state.tests[unit.id];
-              const passed = isTestPassed(unit.id, state);
+          {STAGES.map((stage) => (
+            <tbody key={stage.id}>
+              <tr>
+                <th
+                  scope="rowgroup"
+                  colSpan={3}
+                  className="bg-primary-soft/60 rounded-lg px-2 py-1.5 text-sm font-black"
+                >
+                  {stage.name} · {stage.level}
+                </th>
+              </tr>
+              {stage.units.map((unit) => {
+                const lessons = getUnitLessons(unit.id);
+                const done = lessons.filter((lesson) =>
+                  isLessonDone(lesson.id, state),
+                ).length;
+                const test = state.tests[unit.id];
+                const passed = isTestPassed(unit.id, state);
 
-              return (
-                <tr key={unit.id} className="border-line border-b last:border-b-0">
-                  <th scope="row" className="py-2 pr-3 font-extrabold">
-                    <span className="emoji mr-2" aria-hidden="true">
-                      {unit.icon}
-                    </span>
-                    {localized(unit.title)}
-                  </th>
-                  <td className="py-2 pr-3 font-bold">
-                    {done} / {lessons.length}
-                  </td>
-                  <td className="py-2 font-bold">
-                    {test ? (
-                      <span
-                        className={cn("font-black", passed ? "text-mint" : "text-coral")}
-                      >
-                        {test.bestScore}% ·{" "}
-                        {passed ? t.overview.testsPassed : t.overview.testsFailed}
+                return (
+                  <tr key={unit.id} className="border-line border-b last:border-b-0">
+                    <th scope="row" className="py-2 pr-3 font-extrabold">
+                      <span className="emoji mr-2" aria-hidden="true">
+                        {unit.icon}
                       </span>
-                    ) : (
-                      <span className="text-ink-soft">{t.overview.testsNotTaken}</span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
+                      {localized(unit.title)}
+                    </th>
+                    <td className="py-2 pr-3 font-bold">
+                      {done} / {lessons.length}
+                    </td>
+                    <td className="py-2 font-bold">
+                      {test ? (
+                        <span
+                          className={cn(
+                            "font-black",
+                            passed ? "text-mint" : "text-coral",
+                          )}
+                        >
+                          {test.bestScore}% ·{" "}
+                          {passed ? t.overview.testsPassed : t.overview.testsFailed}
+                        </span>
+                      ) : (
+                        <span className="text-ink-soft">{t.overview.testsNotTaken}</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          ))}
         </table>
       </div>
     </Card>

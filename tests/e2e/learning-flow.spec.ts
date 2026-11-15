@@ -12,6 +12,20 @@ import {
 
 const ALI_PIN = "1357";
 const VALI_PIN = "2468";
+const STARTERS_UNIT_IDS = [
+  "colours",
+  "numbers",
+  "animals",
+  "family",
+  "body",
+  "food",
+  "school",
+  "home",
+  "clothes",
+  "toys",
+  "transport",
+  "zoo",
+];
 
 // One story told in order; the steps build on each other's data.
 test.describe.configure({ mode: "serial" });
@@ -49,7 +63,7 @@ test("a learner registers by name and earns the prize set by the parent", async 
   await visible(page, "parent-link").click();
   await expect(page).toHaveURL(/\/parent$/);
   await openParent(page, ALI_PIN);
-  await expect(visible(page, "summary-lessons")).toContainText("0 / 24");
+  await expect(visible(page, "summary-lessons")).toContainText("0 / 72");
   await page.locator("#prize-unit").selectOption("colours");
   await page.locator("#prize-title").fill("Bicycle bell");
   await page.locator("#prize-score").fill("80");
@@ -82,7 +96,7 @@ test("a learner registers by name and earns the prize set by the parent", async 
 
   // The parent sees the results and hands the prize over.
   await openParent(page, ALI_PIN);
-  await expect(visible(page, "summary-lessons")).toContainText("2 / 24");
+  await expect(visible(page, "summary-lessons")).toContainText("2 / 72");
   await expect(visible(page, "prize-item")).toHaveAttribute("data-status", "earned");
   await visible(page, "prize-item").getByRole("button").click();
   await expect(visible(page, "prize-item")).toHaveAttribute("data-status", "given");
@@ -95,7 +109,7 @@ test("the admin sees every account, its results and a private comment", async ({
   await expect(visible(page, "accounts-count")).toContainText("1");
 
   const detail = await openAccount(page, "Ali");
-  await expect(visible(page, "summary-lessons")).toContainText("2 / 24");
+  await expect(visible(page, "summary-lessons")).toContainText("2 / 72");
   await expect(visible(page, "prize-item")).toHaveAttribute("data-status", "given");
 
   await detail.locator("#account-note").fill("My nephew, 2nd grade");
@@ -146,7 +160,7 @@ test("the parent section belongs to one account and stays behind its PIN", async
   await login(page, "Vali");
   await openParent(page, VALI_PIN);
   await expect(visible(page, "parent-dashboard")).toContainText("Vali");
-  await expect(visible(page, "summary-lessons")).toContainText("0 / 24");
+  await expect(visible(page, "summary-lessons")).toContainText("0 / 72");
   await expect(page.getByTestId("prize-item")).toHaveCount(0);
 
   // After locking, a wrong PIN does not open it.
@@ -203,5 +217,41 @@ test("speaking practice checks the voice, allows a retry and never blocks", asyn
 
   // The other cards are passed without speaking; the lesson still ends with 100%.
   await completeSession(page);
+  await expect(visible(page, "result-score")).toHaveText("100%");
+});
+
+test("Movers opens after Starters and asks words inside sentences", async ({ page }) => {
+  test.setTimeout(60_000);
+  await login(page, "Mover");
+
+  // A new learner starts in Starters; Movers is closed.
+  const starters = page.locator('[data-stage="starters"]').filter({ visible: true });
+  const movers = page.locator('[data-stage="movers"]').filter({ visible: true });
+  await expect(starters).toHaveAttribute("open", "");
+  await expect(movers).not.toHaveAttribute("open", "");
+  await expect(movers.getByRole("link")).toHaveCount(0);
+
+  // Finish Starters quickly through the API: one passed test per unit.
+  for (const refId of STARTERS_UNIT_IDS) {
+    const response = await page.request.post("/api/sessions", {
+      data: {
+        kind: "test",
+        refId,
+        durationSec: 60,
+        answers: [{ wordId: "red", correct: true }],
+      },
+    });
+    expect(response.status()).toBe(201);
+  }
+
+  // Now the first Movers unit is unlocked and its first lesson can be opened.
+  await page.goto("/");
+  await movers.locator("summary").click();
+  await movers.locator('[data-unit-id="teens"]').getByRole("link").first().click();
+  await expect(page).toHaveURL(/\/lesson\/teens-1$/);
+
+  // Movers lessons include read-and-choose sentence questions.
+  const { sentenceQuestions } = await completeSession(page);
+  expect(sentenceQuestions).toBeGreaterThan(0);
   await expect(visible(page, "result-score")).toHaveText("100%");
 });
