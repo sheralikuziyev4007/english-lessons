@@ -26,10 +26,50 @@ function getTitle(exercise: ChoiceExerciseData, t: Dictionary): string {
   }
   if (exercise.prompt === "word") return t.session.pickTranslation;
   if (exercise.prompt === "translation") return t.session.pickWordByTranslation;
+  if (exercise.prompt === "sentence") return t.session.pickWordForSentence;
   return t.session.pickWord;
 }
 
-function Prompt({ exercise, word }: { exercise: ChoiceExerciseData; word: Word }) {
+const BLANK = "___";
+
+/** A sentence with a gap; the gap shows the word once the question is answered. */
+function SentencePrompt({ word, revealed }: { word: Word; revealed: boolean }) {
+  const t = useT();
+  const [before, after = ""] = (word.sentence ?? BLANK).split(BLANK);
+
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <WordVisual visual={word.visual} label={t.session.pictureOf(word.uz)} />
+      <p
+        lang="en"
+        data-testid="sentence"
+        className="text-center text-2xl font-black sm:text-3xl"
+      >
+        {before}
+        {revealed ? (
+          <span className="text-mint underline decoration-4 underline-offset-4">
+            {word.en}
+          </span>
+        ) : (
+          <span
+            role="img"
+            aria-label={t.session.blank}
+            className="border-ink mx-1 inline-block w-20 border-b-4 align-baseline"
+          />
+        )}
+        {after}
+      </p>
+    </div>
+  );
+}
+
+interface PromptProps {
+  exercise: ChoiceExerciseData;
+  word: Word;
+  locked: boolean;
+}
+
+function Prompt({ exercise, word, locked }: PromptProps) {
   const t = useT();
 
   switch (exercise.prompt) {
@@ -48,6 +88,8 @@ function Prompt({ exercise, word }: { exercise: ChoiceExerciseData; word: Word }
           <ListenButton text={word.en} label={t.session.listenTo(word.en)} />
         </div>
       );
+    case "sentence":
+      return <SentencePrompt word={word} revealed={locked} />;
     case "translation":
       return (
         <p lang="uz" className="text-center text-3xl font-black sm:text-4xl">
@@ -72,7 +114,7 @@ export function ChoiceExercise({ exercise, locked, onAnswer }: ChoiceExercisePro
   return (
     <ExerciseFrame title={getTitle(exercise, t)} type="choice" wordId={word.id}>
       <div className="flex min-h-36 items-center justify-center">
-        <Prompt exercise={exercise} word={word} />
+        <Prompt exercise={exercise} word={word} locked={locked} />
       </div>
       <ul
         className={cn(

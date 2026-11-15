@@ -21,6 +21,12 @@ const AUDIO_TO_PICTURE: ChoiceVariant = ["audio", "visual"];
 const WORD_TO_MEANING: ChoiceVariant = ["word", "translation"];
 const MEANING_TO_WORD: ChoiceVariant = ["translation", "word"];
 const AUDIO_TO_WORD: ChoiceVariant = ["audio", "word"];
+const SENTENCE_TO_WORD: ChoiceVariant = ["sentence", "word"];
+
+/** Words with a sentence are read in context instead of shown as a bare picture. */
+function inContext(word: Word, variant: ChoiceVariant): ChoiceVariant {
+  return variant === PICTURE_TO_WORD && word.sentence ? SENTENCE_TO_WORD : variant;
+}
 
 /** What the learner sees for an option; two options must never look the same. */
 function optionFace(word: Word, kind: OptionKind): string {
@@ -110,7 +116,7 @@ function spelling(nextId: () => string, word: Word, typed: boolean, rng: Rng): E
 }
 
 /**
- * A lesson: recognise each picture, then recognise by sound or meaning,
+ * A lesson: recognise each picture, then recognise by sound, meaning or sentence,
  * match the pairs, and finally spell each word.
  */
 export function generateLessonExercises(
@@ -123,9 +129,13 @@ export function generateLessonExercises(
     choice(nextId, word, variant, words, LESSON_OPTION_COUNT, rng);
 
   const recognise = words.map((word) => pick(word, PICTURE_TO_WORD));
-  const understand = shuffle(words, rng).map((word, index) =>
-    pick(word, allowAudio && index % 2 === 0 ? AUDIO_TO_PICTURE : WORD_TO_MEANING),
-  );
+  // Words with a sentence (stage 2 onwards) are read in context every other
+  // time; the remaining questions train listening where the device can speak.
+  const understand = shuffle(words, rng).map((word, index) => {
+    const listening = allowAudio ? AUDIO_TO_PICTURE : WORD_TO_MEANING;
+    if (index % 2 === 0) return pick(word, word.sentence ? SENTENCE_TO_WORD : listening);
+    return pick(word, word.sentence ? listening : WORD_TO_MEANING);
+  });
   const matchIds = shuffle(words, rng)
     .slice(0, MATCH_PAIR_COUNT)
     .map((word) => word.id);
@@ -160,7 +170,14 @@ export function generateReviewExercises(
     const slot = index % (variants.length + 1);
     return slot === variants.length
       ? spelling(nextId, word, allowTyping, rng)
-      : choice(nextId, word, variants[slot], words, LESSON_OPTION_COUNT, rng);
+      : choice(
+          nextId,
+          word,
+          inContext(word, variants[slot]),
+          words,
+          LESSON_OPTION_COUNT,
+          rng,
+        );
   });
 }
 
@@ -184,7 +201,7 @@ export function generateTestExercises(
     choice(
       nextId,
       word,
-      variants[index % variants.length],
+      inContext(word, variants[index % variants.length]),
       words,
       TEST_OPTION_COUNT,
       rng,

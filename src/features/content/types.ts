@@ -13,6 +13,8 @@ export interface Word {
   en: string;
   uz: string;
   visual: Visual;
+  /** A short sentence for reading practice; `___` marks where the word goes. */
+  sentence?: string;
 }
 
 export interface Unit {
@@ -20,6 +22,18 @@ export interface Unit {
   title: LocalizedText;
   icon: string;
   words: Word[];
+}
+
+export type StageId = "starters" | "movers";
+
+/** A level of the course, e.g. Starters (Pre A1) or Movers (A1). */
+export interface Stage {
+  id: StageId;
+  /** The Cambridge Young Learners name; the same in every language. */
+  name: string;
+  /** CEFR level. */
+  level: string;
+  units: Unit[];
 }
 
 export interface Lesson {

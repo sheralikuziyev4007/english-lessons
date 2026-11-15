@@ -1,10 +1,31 @@
-import { UNITS } from "@/features/content/data/units";
-import type { Lesson, Unit, Word } from "@/features/content/types";
+import { MOVERS_UNITS } from "@/features/content/data/movers";
+import { STARTERS_UNITS } from "@/features/content/data/starters";
+import type { Lesson, Stage, StageId, Unit, Word } from "@/features/content/types";
 import { LESSONS_PER_UNIT } from "@/lib/constants";
 import { chunk } from "@/lib/utils";
 
-export { UNITS };
-export type { Lesson, LocalizedText, Unit, Visual, Word } from "@/features/content/types";
+export type {
+  Lesson,
+  LocalizedText,
+  Stage,
+  StageId,
+  Unit,
+  Visual,
+  Word,
+} from "@/features/content/types";
+
+/** The course, stage by stage, in learning order. */
+export const STAGES: Stage[] = [
+  { id: "starters", name: "Starters", level: "Pre A1", units: STARTERS_UNITS },
+  { id: "movers", name: "Movers", level: "A1", units: MOVERS_UNITS },
+];
+
+/** Every unit of the course in learning order. */
+export const UNITS: Unit[] = STAGES.flatMap((stage) => stage.units);
+
+const STAGE_ID_BY_UNIT = new Map<string, StageId>(
+  STAGES.flatMap((stage) => stage.units.map((unit) => [unit.id, stage.id] as const)),
+);
 
 function buildLessons(unit: Unit): Lesson[] {
   const size = Math.ceil(unit.words.length / LESSONS_PER_UNIT);
@@ -35,6 +56,14 @@ const LESSONS_BY_ID = new Map<string, Lesson>(
 const UNIT_ID_BY_WORD = new Map<string, string>(
   UNITS.flatMap((unit) => unit.words.map((word) => [word.id, unit.id] as const)),
 );
+
+export function getStageIdOfUnit(unitId: string): StageId | undefined {
+  return STAGE_ID_BY_UNIT.get(unitId);
+}
+
+export function getStageLessons(stage: Stage): Lesson[] {
+  return stage.units.flatMap((unit) => LESSONS_BY_UNIT.get(unit.id) ?? []);
+}
 
 export function getUnit(unitId: string): Unit | undefined {
   return UNITS_BY_ID.get(unitId);

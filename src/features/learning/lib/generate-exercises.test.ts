@@ -147,3 +147,28 @@ describe("generateReviewExercises", () => {
     expect(asked.sort()).toEqual(words.map((word) => word.id).sort());
   });
 });
+
+describe("sentence questions", () => {
+  const moversWords = getUnit("pets")?.words ?? [];
+  const startersWords = getUnit("animals")?.words ?? [];
+  const isSentence = (exercise: Exercise) =>
+    exercise.type === "choice" && exercise.prompt === "sentence";
+
+  it("asks Movers words in a sentence during lessons, tests and reviews", () => {
+    const lesson = generateLessonExercises(moversWords.slice(0, 5), options(4));
+    expect(lesson.filter(isSentence)).toHaveLength(3);
+    expect(lesson).toHaveLength(16);
+
+    expect(generateTestExercises(moversWords, options(4)).some(isSentence)).toBe(true);
+    expect(generateReviewExercises(moversWords, options(4)).some(isSentence)).toBe(true);
+  });
+
+  it("never asks a sentence question for a word without a sentence", () => {
+    const all = [
+      ...generateLessonExercises(startersWords.slice(0, 5), options(4)),
+      ...generateTestExercises(startersWords, options(4)),
+      ...generateReviewExercises(startersWords, options(4)),
+    ];
+    expect(all.some(isSentence)).toBe(false);
+  });
+});

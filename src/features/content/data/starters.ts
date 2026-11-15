@@ -26,7 +26,7 @@ const numeral = (en: string, uz: string, value: string): Word => ({
  * Cambridge "Pre A1 Starters" wordlist (numbers 1-10 come from its numbers
  * section). British spelling is used throughout. Word ids are globally unique.
  */
-export const UNITS: Unit[] = [
+export const STARTERS_UNITS: Unit[] = [
   {
     id: "colours",
     title: { en: "Colours", uz: "Ranglar" },

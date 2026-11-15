@@ -1,4 +1,4 @@
-export type PromptKind = "visual" | "audio" | "word" | "translation";
+export type PromptKind = "visual" | "audio" | "word" | "translation" | "sentence";
 export type OptionKind = "word" | "visual" | "translation";
 
 interface ExerciseBase {

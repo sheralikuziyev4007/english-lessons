@@ -62,6 +62,9 @@ export const uz: Dictionary = {
     dailyLimit: "Bugungi yangi darslarni tugatding. Ertaga yana kel!",
     courseDone: "Hamma bo'limlarni tugatding. Tez orada yangilari qo'shiladi!",
     unitsTitle: "Sening yo'ling",
+    stageLocked: (previous: string) => `${previous} tugagach ochiladi`,
+    stageProgress: (done: number, total: number) =>
+      `${total} ta bo'limdan ${done} tasi tugatilgan`,
     lesson: (number: number) => `${number}-dars`,
     test: "Yakuniy test",
     locked: "yopiq",
@@ -97,6 +100,8 @@ export const uz: Dictionary = {
     pickTranslation: "Bu so'z nimani anglatadi?",
     pickWordByTranslation: "Inglizcha so'zni tanla",
     pickWordByAudio: "Eshit va so'zni tanla",
+    pickWordForSentence: "Gapni o'qi va so'zni tanla",
+    blank: "tushirib qoldirilgan so'z",
     build: "So'zni yig'",
     type: "So'zni yoz",
     match: "Juftini top",
@@ -193,7 +198,8 @@ export const uz: Dictionary = {
     minutes: (count: number) => `${count} daq`,
     activityEmpty: "Oxirgi 7 kunda hali mashg'ulot bo'lmagan.",
     roadmapTitle: "Imtihongacha yo'l",
-    roadmapStages: ["Starters · Pre A1", "Movers · A1", "Flyers · A2"],
+    roadmapNext: "Flyers · A2",
+    stageUnits: (count: number) => `${count} ta bo'lim`,
     roadmapCurrent: "hozirgi bosqich",
     roadmapLater: "keyinroq qo'shiladi",
     roadmapProgress: (done: number, total: number) =>
