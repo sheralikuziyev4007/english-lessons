@@ -12,6 +12,7 @@ interface SessionRunnerProps {
   title: string;
   kind: SessionKind;
   refId: string;
+  learnerName: string;
   introWords: Word[];
   requeueWrong: boolean;
   generate: (options: GenerateOptions) => Exercise[];

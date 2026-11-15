@@ -71,18 +71,23 @@ describe("getNextStep", () => {
 
 describe("isDailyLimitReached", () => {
   const stats = { lessonDone: true, reviewDone: false, offlineDone: false };
+  const account = { id: 1, name: "Ali", isVip: false };
+  const atLimit = { ...stats, newLessons: DAILY_NEW_LESSON_LIMIT };
 
   it("caps new lessons per day", () => {
     expect(
       isDailyLimitReached({
+        account,
         todayStats: { ...stats, newLessons: DAILY_NEW_LESSON_LIMIT - 1 },
       }),
     ).toBe(false);
+    expect(isDailyLimitReached({ account, todayStats: atLimit })).toBe(true);
+  });
+
+  it("never caps a VIP account", () => {
     expect(
-      isDailyLimitReached({
-        todayStats: { ...stats, newLessons: DAILY_NEW_LESSON_LIMIT },
-      }),
-    ).toBe(true);
+      isDailyLimitReached({ account: { ...account, isVip: true }, todayStats: atLimit }),
+    ).toBe(false);
   });
 });
 

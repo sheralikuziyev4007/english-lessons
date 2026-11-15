@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import type { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Field, fieldErrorId } from "@/components/ui/field";
@@ -10,9 +11,10 @@ import { useLogin } from "@/features/auth/hooks/use-auth";
 import { loginSchema, type LoginValues } from "@/features/auth/schemas";
 import { useErrorText } from "@/hooks/use-error-text";
 import { useT } from "@/hooks/use-t";
-import { isApiError } from "@/lib/api-client";
+import { NAME_MAX_LENGTH } from "@/lib/constants";
 
-const PASSWORD_ID = "family-password";
+const NAME_ID = "learner-name";
+const HINT_ID = "learner-name-hint";
 
 export function LoginForm() {
   const t = useT();
@@ -22,17 +24,14 @@ export function LoginForm() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginValues>({
+  } = useForm<z.input<typeof loginSchema>, unknown, LoginValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { password: "" },
+    defaultValues: { name: "" },
   });
 
-  const serverError = loginMutation.isError
-    ? isApiError(loginMutation.error, 401)
-      ? t.errors.wrongPassword
-      : t.common.errorText
-    : undefined;
-  const error = errorText(errors.password?.message) ?? serverError;
+  const error =
+    errorText(errors.name?.message) ??
+    (loginMutation.isError ? t.common.errorText : undefined);
 
   return (
     <form
@@ -40,16 +39,21 @@ export function LoginForm() {
       onSubmit={handleSubmit((values) => loginMutation.mutate(values))}
       className="flex flex-col gap-4"
     >
-      <Field label={t.login.password} htmlFor={PASSWORD_ID} error={error}>
+      <Field label={t.login.name} htmlFor={NAME_ID} error={error}>
         <Input
-          id={PASSWORD_ID}
-          type="password"
-          autoComplete="current-password"
+          id={NAME_ID}
+          autoComplete="given-name"
+          autoCapitalize="words"
+          maxLength={NAME_MAX_LENGTH}
+          placeholder={t.login.namePlaceholder}
           aria-invalid={error !== undefined}
-          aria-describedby={error ? fieldErrorId(PASSWORD_ID) : undefined}
-          {...register("password")}
+          aria-describedby={error ? `${fieldErrorId(NAME_ID)} ${HINT_ID}` : HINT_ID}
+          {...register("name")}
         />
       </Field>
+      <p id={HINT_ID} className="text-ink-soft text-sm font-bold">
+        {t.login.hint}
+      </p>
       <Button type="submit" size="lg" disabled={loginMutation.isPending}>
         {loginMutation.isPending ? t.common.loading : t.login.submit}
       </Button>

@@ -15,20 +15,22 @@ import { cn } from "@/lib/utils";
 
 interface ResultScreenProps {
   kind: SessionKind;
+  learnerName: string;
   result: SessionResult | undefined;
   isError: boolean;
   onRetrySave: () => void;
   onRestart: () => void;
 }
 
-function getHeadline(score: number, t: Dictionary): string {
-  if (score >= THREE_STAR_SCORE) return t.session.resultGood;
-  if (score >= TWO_STAR_SCORE) return t.session.resultOk;
-  return t.session.resultTry;
+function getHeadline(score: number, name: string, t: Dictionary): string {
+  if (score >= THREE_STAR_SCORE) return t.session.resultGood(name);
+  if (score >= TWO_STAR_SCORE) return t.session.resultOk(name);
+  return t.session.resultTry(name);
 }
 
 export function ResultScreen({
   kind,
+  learnerName,
   result,
   isError,
   onRetrySave,
@@ -62,7 +64,9 @@ export function ResultScreen({
       animate={{ opacity: 1, scale: 1 }}
       className="mx-auto flex w-full max-w-md flex-col items-center gap-5 px-4 py-10 text-center"
     >
-      <h1 className="text-4xl font-black">{getHeadline(result.score, t)}</h1>
+      <h1 data-testid="result-title" className="text-4xl font-black break-words">
+        {getHeadline(result.score, learnerName, t)}
+      </h1>
 
       {kind !== "review" && (
         <motion.div

@@ -43,6 +43,7 @@ function TestContent({ unitId, state }: { unitId: string; state: AppState }) {
       title={t.session.testTitle(localized(unit.title))}
       kind="test"
       refId={unit.id}
+      learnerName={state.account.name}
       introWords={[]}
       requeueWrong={false}
       generate={(options) => generateTestExercises(unit.words, options)}

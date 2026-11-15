@@ -48,3 +48,9 @@ export function computeStreak(activeDays: readonly string[], today: string): num
   }
   return streak;
 }
+
+/** "2026-11-14" -> "14.11.2026" */
+export function formatDayKey(key: string): string {
+  const [year, month, day] = key.split("-");
+  return `${day}.${month}.${year}`;
+}

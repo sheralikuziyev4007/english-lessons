@@ -12,7 +12,7 @@ interface PrizeBannerProps {
   state: AppState;
 }
 
-/** The reward the parent promised, with the steps left to earn it. */
+/** The promised reward, with the steps left to earn it. */
 export function PrizeBanner({ prize, state }: PrizeBannerProps) {
   const t = useT();
   const localized = useLocalized();

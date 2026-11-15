@@ -11,11 +11,12 @@ import { cn } from "@/lib/utils";
 
 interface FeedbackBarProps {
   feedback: Feedback;
+  learnerName: string;
   onContinue: () => void;
 }
 
 /** Tells the child whether the answer was right and shows the correct word. */
-export function FeedbackBar({ feedback, onContinue }: FeedbackBarProps) {
+export function FeedbackBar({ feedback, learnerName, onContinue }: FeedbackBarProps) {
   const t = useT();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const word = feedback.wordId ? getWord(feedback.wordId) : undefined;
@@ -44,8 +45,8 @@ export function FeedbackBar({ feedback, onContinue }: FeedbackBarProps) {
             )}
           />
           <div>
-            <p className="text-xl font-black">
-              {feedback.correct ? t.session.correct : t.session.wrong}
+            <p className="text-xl font-black break-words">
+              {feedback.correct ? t.session.correct(learnerName) : t.session.wrong}
             </p>
             {word && (
               <p className="font-bold">

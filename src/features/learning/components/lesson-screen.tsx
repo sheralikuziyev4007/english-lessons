@@ -75,6 +75,7 @@ function LessonContent({ lessonId, state }: { lessonId: string; state: AppState 
       title={t.session.lessonTitle(localized(unit.title), lesson.number)}
       kind="lesson"
       refId={lesson.id}
+      learnerName={state.account.name}
       introWords={words}
       requeueWrong
       generate={(options) => generateLessonExercises(words, options)}

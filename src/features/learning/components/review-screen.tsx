@@ -31,6 +31,7 @@ function ReviewContent({ state }: { state: AppState }) {
       title={t.session.reviewTitle}
       kind="review"
       refId={REVIEW_REF_ID}
+      learnerName={state.account.name}
       introWords={[]}
       requeueWrong
       generate={(options) => generateReviewExercises(words, options)}

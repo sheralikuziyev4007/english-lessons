@@ -22,6 +22,8 @@ interface SessionPlayerProps {
   title: string;
   kind: SessionKind;
   refId: string;
+  /** The learner is addressed by name in feedback and on the result screen. */
+  learnerName: string;
   /** New words shown as cards before the questions (lessons only). */
   introWords: Word[];
   exercises: Exercise[];
@@ -54,6 +56,7 @@ export function SessionPlayer({
   title,
   kind,
   refId,
+  learnerName,
   introWords,
   exercises,
   requeueWrong,
@@ -91,6 +94,7 @@ export function SessionPlayer({
       <main id="main" className="flex flex-1 flex-col justify-center">
         <ResultScreen
           kind={kind}
+          learnerName={learnerName}
           result={submit.data}
           isError={submit.isError}
           onRetrySave={() => submit.mutate(buildInput())}
@@ -133,7 +137,11 @@ export function SessionPlayer({
         </motion.div>
       </main>
       {state.feedback && (
-        <FeedbackBar feedback={state.feedback} onContinue={handleContinue} />
+        <FeedbackBar
+          feedback={state.feedback}
+          learnerName={learnerName}
+          onContinue={handleContinue}
+        />
       )}
     </div>
   );

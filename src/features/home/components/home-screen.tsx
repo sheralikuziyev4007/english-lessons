@@ -11,15 +11,18 @@ import { StateGate } from "@/features/progress/components/state-gate";
 import type { AppState } from "@/features/progress/types";
 import { useT } from "@/hooks/use-t";
 
-const CHILD_NAME = process.env.NEXT_PUBLIC_CHILD_NAME ?? "";
-
 function HomeContent({ state }: { state: AppState }) {
   const t = useT();
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-3xl font-black sm:text-4xl">{t.home.greeting(CHILD_NAME)}</h1>
+        <h1
+          data-testid="greeting"
+          className="text-3xl font-black break-words sm:text-4xl"
+        >
+          {t.home.greeting(state.account.name)}
+        </h1>
         <p className="text-ink-soft text-lg font-bold">{t.home.subtitle}</p>
       </div>
       <StatsRow state={state} />

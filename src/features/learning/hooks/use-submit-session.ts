@@ -11,7 +11,7 @@ export function useSubmitSession() {
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.state }),
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.parentOverview }),
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminAccounts }),
       ]),
   });
 }

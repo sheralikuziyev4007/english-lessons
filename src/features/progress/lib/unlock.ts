@@ -54,9 +54,14 @@ export function getNextStep(state: Progress): NextStep {
   return { type: "finished" };
 }
 
-/** New lessons are capped per day; repeating a finished lesson is always allowed. */
-export function isDailyLimitReached(state: Pick<AppState, "todayStats">): boolean {
-  return state.todayStats.newLessons >= DAILY_NEW_LESSON_LIMIT;
+/**
+ * New lessons are capped per day; repeating a finished lesson is always allowed.
+ * VIP accounts have no cap.
+ */
+export function isDailyLimitReached(
+  state: Pick<AppState, "todayStats" | "account">,
+): boolean {
+  return !state.account.isVip && state.todayStats.newLessons >= DAILY_NEW_LESSON_LIMIT;
 }
 
 export interface PrizeProgress {

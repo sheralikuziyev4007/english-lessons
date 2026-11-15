@@ -1,19 +1,18 @@
 "use client";
 
-import { Lock } from "lucide-react";
 import Link from "next/link";
 
+import { AccountMenu } from "@/components/layout/account-menu";
 import { LanguageToggle } from "@/components/layout/language-toggle";
-import { buttonVariants } from "@/components/ui/button";
 import { useT } from "@/hooks/use-t";
 import { APP_NAME, ROUTES } from "@/lib/constants";
-import { cn } from "@/lib/utils";
 
 interface AppHeaderProps {
-  showParentLink?: boolean;
+  /** Hide on pages that do not belong to a learner account (admin). */
+  showAccount?: boolean;
 }
 
-export function AppHeader({ showParentLink = true }: AppHeaderProps) {
+export function AppHeader({ showAccount = true }: AppHeaderProps) {
   const t = useT();
 
   return (
@@ -24,30 +23,21 @@ export function AppHeader({ showParentLink = true }: AppHeaderProps) {
       >
         {t.common.skipToContent}
       </a>
-      <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-3 px-4">
+      <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-2 px-4">
         <Link
           href={ROUTES.home}
-          className="focus-visible:outline-ink flex items-center gap-2 rounded-xl text-lg font-black focus-visible:outline-3 focus-visible:outline-offset-4"
+          className="focus-visible:outline-ink flex min-w-0 items-center gap-2 rounded-xl text-lg font-black focus-visible:outline-3 focus-visible:outline-offset-4"
         >
           <span className="emoji text-2xl" aria-hidden="true">
             ⭐
           </span>
-          <span lang="en">{APP_NAME}</span>
+          <span lang="en" className="truncate">
+            {APP_NAME}
+          </span>
         </Link>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <LanguageToggle />
-          {showParentLink && (
-            <Link
-              href={ROUTES.parent}
-              className={cn(
-                buttonVariants({ variant: "ghost", size: "sm" }),
-                "px-2 sm:px-3",
-              )}
-            >
-              <Lock className="size-5" aria-hidden="true" />
-              <span className="sr-only sm:not-sr-only">{t.common.parents}</span>
-            </Link>
-          )}
+          {showAccount && <AccountMenu />}
         </div>
       </div>
     </header>

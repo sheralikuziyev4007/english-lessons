@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import { LoginScreen } from "@/features/auth/components/login-screen";
 
 export const metadata: Metadata = {
-  title: "Log in",
-  description: "Log in to the family English course.",
+  title: "Start",
+  description: "Write your name and start learning English.",
 };
 
 export default function LoginPage() {
