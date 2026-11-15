@@ -1,6 +1,6 @@
 # Starway English
 
-A daily English course for young learners (age 7–9, starting from zero) with name-only accounts, an admin section, prizes and spaced repetition. Vocabulary follows the Cambridge **Pre A1 Starters** wordlist.
+A daily English course for young learners (age 7–9, starting from zero) with name-only accounts, a parent section, an admin section, prizes and spaced repetition. Vocabulary follows the Cambridge **Pre A1 Starters** wordlist.
 
 **Live demo:** _add your Vercel URL here_
 
@@ -29,14 +29,21 @@ _Screenshot or GIF: add one here._
 - Names are matched without regard to letter case, extra spaces or apostrophe style
 - The learner is addressed by name on the home screen, in feedback and on result screens
 
+**Parent section** (`/parent`, lock icon in the header)
+
+- Belongs to the logged-in account and shows only that learner's results
+- Protected by a 4-digit PIN the parent chooses on the first visit; each account has its own PIN
+- Summary (streak, stars, words learned, lessons finished), minutes for the last 7 days, best test score per unit, most difficult words
+- Set a prize for a unit and the test score needed to earn it; mark it as given later
+- Tick off the daily offline task; roadmap towards the exam with an on-track indicator
+
 **Admin section** (`/admin`, password protected, not linked from the app)
 
 - List of all accounts with their number, registration date, lessons finished and last activity
 - Private comment per account, visible only to the admin
 - VIP plan per account: removes the daily limit on new lessons (also enforced on the server)
-- Results per account: streak, stars, words learned, minutes for the last 7 days, best test score per unit, most difficult words
-- Prizes per account: set a prize for a unit and the test score needed, mark it as given later
-- Tick off the daily offline task; roadmap towards the exam with an on-track indicator
+- The same results screen as the parent section, for any account
+- Reset a forgotten parent PIN
 
 ## Tech stack
 
@@ -105,10 +112,10 @@ On the phone, open the site in Chrome and choose **Add to Home screen** to insta
 ```
 src/
   app/                    Routes and API route handlers
-    api/                  auth, state, sessions, admin/*
+    api/                  auth, state, sessions, parent/*, admin/*
     lesson/[lessonId]/    Lesson page
     test/[unitId]/        Unit test page
-    review/  admin/  login/
+    review/  parent/  admin/  login/
   components/
     ui/                   Button, Card, Input, ProgressBar, Stars, WordVisual…
     layout/               Header, language toggle, providers
@@ -117,7 +124,9 @@ src/
     learning/             Question generator, session player, exercises
     progress/             Progress types, unlock rules, state query
     home/                 Daily plan, prize banner, course path
-    admin/                Accounts list, account results, VIP, comments, prizes
+    overview/             Results screen shared by the parent and admin sections
+    parent/               Parent section and its PIN
+    admin/                Accounts list, VIP, comments, PIN reset
     auth/                 Login
   hooks/                  useT, useLocalized, useMediaQuery…
   lib/                    Constants, dates, scoring, API client, i18n dictionaries
@@ -128,11 +137,12 @@ tests/e2e/                Playwright tests
 
 ## Adding content
 
-All course content lives in `src/features/content/data/units.ts`. Add a unit (or words to a unit) there and it appears on the path, in tests and in the admin section. Rules checked by the tests: unique word ids, single lowercase English words, no repeated picture or translation inside a unit.
+All course content lives in `src/features/content/data/units.ts`. Add a unit (or words to a unit) there and it appears on the path, in tests and in the parent and admin sections. Rules checked by the tests: unique word ids, single lowercase English words, no repeated picture or translation inside a unit.
 
 ## My role and problems solved
 
 - **One code path, two databases.** Drizzle talks to Neon over HTTP in production and to embedded PGlite in development and tests, so the project runs locally with zero database setup. Tables are created by idempotent DDL at first use, which removes the migration step from deployment.
+- **One results screen, two audiences.** The parent and admin sections render the same components; each supplies its own API calls through a small context, so nothing is duplicated.
 - **Multi-account data model.** Every table is keyed by account, the name is normalised into a unique key, and account creation is a single race-safe upsert.
 - **Scoring cannot be faked by repeating.** Only first-attempt answers are sent to the server; the server computes the score, stars, spaced-repetition boxes and prize status.
 - **Stale session screens.** Next.js 16 keeps visited pages alive in the background (React `<Activity>`), so reopening a lesson showed the previous result. Session screens are keyed by `router.bfcacheId` to start fresh on every new navigation.
