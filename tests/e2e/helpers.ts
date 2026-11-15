@@ -12,9 +12,10 @@ export function visible(page: Page, testId: string): Locator {
 
 const FIRST_LOAD_TIMEOUT_MS = 20_000;
 
-export async function login(page: Page): Promise<void> {
+/** Signs in with a name only; a new name creates a new account. */
+export async function login(page: Page, name: string): Promise<void> {
   await page.goto("/login");
-  await page.locator("#family-password").fill(E2E.password);
+  await page.locator("#learner-name").fill(name);
   await page.locator('button[type="submit"]').click();
   // The first request also boots the embedded test database.
   await expect(visible(page, "daily-plan")).toBeVisible({
@@ -22,18 +23,29 @@ export async function login(page: Page): Promise<void> {
   });
 }
 
-/** Opens the parent panel, entering the PIN unless it is still unlocked. */
-export async function openParentPanel(page: Page): Promise<void> {
-  await page.goto("/parent");
-  const pin = page.locator("#parent-pin").filter({ visible: true });
-  const summary = visible(page, "summary-lessons");
+/** Opens the admin section, entering the password unless it is still unlocked. */
+export async function openAdmin(page: Page): Promise<void> {
+  await page.goto("/admin");
+  const password = page.locator("#admin-password").filter({ visible: true });
+  const count = visible(page, "accounts-count");
 
-  await expect(pin.or(summary).first()).toBeVisible();
-  if (await pin.isVisible()) {
-    await pin.fill(E2E.pin);
-    await pin.press("Enter");
+  await expect(password.or(count).first()).toBeVisible({
+    timeout: FIRST_LOAD_TIMEOUT_MS,
+  });
+  if (await password.isVisible()) {
+    await password.fill(E2E.adminPassword);
+    await password.press("Enter");
   }
-  await expect(summary).toBeVisible();
+  await expect(count).toBeVisible();
+}
+
+/** Opens the admin section and selects an account by its name. */
+export async function openAccount(page: Page, name: string): Promise<Locator> {
+  await openAdmin(page);
+  await page.locator(`[data-testid="account-item"][data-account-name="${name}"]`).click();
+  const detail = visible(page, "account-detail");
+  await expect(detail.getByRole("heading", { name, exact: true })).toBeVisible();
+  return detail;
 }
 
 /** Answers the question on screen. `correct: false` picks a wrong option where possible. */

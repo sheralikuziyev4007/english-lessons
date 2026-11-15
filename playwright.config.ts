@@ -4,7 +4,7 @@ const PORT = 3100;
 const BASE_URL = `http://localhost:${PORT}`;
 
 /** Credentials used only by the end-to-end test server. */
-export const E2E = { password: "e2e-family", pin: "2468" } as const;
+export const E2E = { adminPassword: "e2e-admin-password" } as const;
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -19,13 +19,8 @@ export default defineConfig({
     // the Chromium that `npx playwright install chromium` downloads.
     channel: process.env.PW_CHANNEL,
   },
-  projects: [
-    { name: "mobile", use: { ...devices["Pixel 7"] } },
-    {
-      name: "desktop",
-      use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } },
-    },
-  ],
+  // The story runs on a phone-sized screen, the main device for learners.
+  projects: [{ name: "mobile", use: { ...devices["Pixel 7"] } }],
   webServer: {
     // The test server uses its own embedded database, wiped before each run.
     command: `node scripts/reset-e2e-db.mjs && npx next build && npx next start -p ${PORT}`,
@@ -33,8 +28,7 @@ export default defineConfig({
     reuseExistingServer: false,
     timeout: 180_000,
     env: {
-      FAMILY_PASSWORD: E2E.password,
-      PARENT_PIN: E2E.pin,
+      ADMIN_PASSWORD: E2E.adminPassword,
       SESSION_SECRET: "e2e-session-secret-not-for-production",
       PGLITE_DIR: "./.pglite-e2e",
       DATABASE_URL: "",
